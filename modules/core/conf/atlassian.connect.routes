@@ -1,0 +1,3 @@
+#Lifecycle events
+POST        /installed          io.toolsplus.atlassian.connect.play.controllers.LifecycleController.installed
+POST        /uninstalled        io.toolsplus.atlassian.connect.play.controllers.LifecycleController.uninstalled

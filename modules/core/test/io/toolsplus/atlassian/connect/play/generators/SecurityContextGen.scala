@@ -1,0 +1,62 @@
+package io.toolsplus.atlassian.connect.play.generators
+
+import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
+import org.scalacheck.Gen
+import org.scalacheck.Gen._
+
+/**
+  * Security context generator generates a security context as provided in the
+  * Atlassian Connect installed event. It can be used to generate objects of
+  * type [[io.toolsplus.atlassian.connect.play.models.LifecycleEvent]] or
+  * [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]].
+  */
+trait SecurityContextGen {
+
+  def alphaNumStr: Gen[String] =
+    listOf(alphaNumChar).map(_.mkString)
+
+  def clientKeyGen: Gen[ClientKey] = alphaNumStr
+
+  def pluginVersionGen: Gen[String] =
+    listOfN(3, posNum[Int]).map(n => n.mkString("."))
+
+  def productTypeGen: Gen[String] = oneOf("jira", "confluence")
+
+  def securityContextGen: Gen[
+    Tuple11[String,
+            ClientKey,
+            String,
+            Option[String],
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
+            Option[String]]] =
+    for {
+      key <- alphaStr
+      clientKey <- clientKeyGen
+      publicKey <- alphaNumStr
+      oauthClientId <- option(alphaNumStr)
+      sharedSecret <- alphaNumStr.suchThat(s => s.length >= 32 && !s.isEmpty)
+      serverVersion <- numStr
+      pluginsVersion <- pluginVersionGen
+      baseUrl <- alphaStr
+      productType <- productTypeGen
+      description <- alphaStr
+      serviceEntitlementNumber <- option(numStr)
+    } yield
+      (key,
+       clientKey,
+       publicKey,
+       oauthClientId,
+       sharedSecret,
+       serverVersion,
+       pluginsVersion,
+       baseUrl,
+       productType,
+       description,
+       serviceEntitlementNumber)
+
+}
