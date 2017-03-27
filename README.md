@@ -12,7 +12,7 @@ This project contains a [Play Scala](https://www.playframework.com/) based imple
 
 atlassian-connect-play is published to Maven Central for Scala 2.11 so you can just add the following to your build:
 
-    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.0.1"
+    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.0.2"
 
 ## Basics
 
