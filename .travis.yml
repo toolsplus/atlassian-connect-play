@@ -23,3 +23,8 @@ script:
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+notifications:
+  webhooks:
+      urls:
+        - https://webhooks.gitter.im/e/e141e68e2c5405a7ef57
