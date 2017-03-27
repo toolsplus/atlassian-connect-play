@@ -4,8 +4,8 @@ import java.time.Duration
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.crypto.MACSigner
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
-import io.toolsplus.atlassian.connect.jwt.scala.{JwtJsonBuilder, JwtSigningError, JwtWriter}
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import io.toolsplus.atlassian.jwt.{JwtJsonBuilder, JwtSigningError, JwtWriter}
 
 /**
   * A builder of JSON Web Tokens.

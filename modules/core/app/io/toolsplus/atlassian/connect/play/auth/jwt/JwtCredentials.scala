@@ -1,6 +1,6 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import io.toolsplus.atlassian.connect.jwt.scala.api.CanonicalHttpRequest
+import io.toolsplus.atlassian.jwt.api.CanonicalHttpRequest
 
 /**
   * Authentication credentials representing an unverified JSON Web Token.

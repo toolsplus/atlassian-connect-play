@@ -4,12 +4,6 @@ import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
-import io.toolsplus.atlassian.connect.jwt.scala.{
-  HttpRequestCanonicalizer,
-  Jwt,
-  JwtParser,
-  JwtReader
-}
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
 import io.toolsplus.atlassian.connect.play.api.models.{
   AtlassianHost,
@@ -24,6 +18,12 @@ import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{
 }
 import io.toolsplus.atlassian.connect.play.auth.jwt.request.SelfAuthenticationTokenGenerator
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.jwt.{
+  HttpRequestCanonicalizer,
+  Jwt,
+  JwtParser,
+  JwtReader
+}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global

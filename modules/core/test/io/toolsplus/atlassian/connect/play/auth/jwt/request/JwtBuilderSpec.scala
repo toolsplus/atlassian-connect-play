@@ -3,10 +3,15 @@ package io.toolsplus.atlassian.connect.play.auth.jwt.request
 import java.time.temporal.ChronoUnit
 import java.time.{Duration, Instant}
 
-import io.toolsplus.atlassian.connect.jwt.scala._
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
-import io.toolsplus.atlassian.connect.jwt.scala.generators.util.JwtTestHelper
 import io.toolsplus.atlassian.connect.play.TestSpec
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
+import io.toolsplus.atlassian.jwt.{
+  HttpRequestCanonicalizer,
+  Jwt,
+  JwtParser,
+  JwtSigningError
+}
 import org.scalacheck.Gen._
 import org.scalatest.Assertion
 
@@ -50,7 +55,8 @@ class JwtBuilderSpec extends TestSpec {
 
       "successfully create JWT claims with overridden issue time" in {
         val expireAfter = Duration.of(10, ChronoUnit.SECONDS)
-        val expectedIssuedAt = Instant.now plus Duration.of(5, ChronoUnit.SECONDS)
+        val expectedIssuedAt = Instant.now plus Duration.of(5,
+                                                            ChronoUnit.SECONDS)
         val result = new JwtBuilder(expireAfter)
           .withIssuedAt(expectedIssuedAt.getEpochSecond)
           .build(JwtTestHelper.defaultSigningSecret)

@@ -1,13 +1,13 @@
 package io.toolsplus.atlassian.connect.play.generators
 
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
-import io.toolsplus.atlassian.connect.jwt.scala.generators.core.JwtGen
-import io.toolsplus.atlassian.connect.jwt.scala.generators.nimbus.NimbusGen
-import io.toolsplus.atlassian.connect.jwt.scala.generators.util.JwtTestHelper
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtCredentials
 import io.toolsplus.atlassian.connect.play.auth.jwt.request.SelfAuthenticationTokenGenerator
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import io.toolsplus.atlassian.jwt.generators.core.JwtGen
+import io.toolsplus.atlassian.jwt.generators.nimbus.NimbusGen
+import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
 import org.scalacheck.Gen
 
 import scala.collection.JavaConverters._

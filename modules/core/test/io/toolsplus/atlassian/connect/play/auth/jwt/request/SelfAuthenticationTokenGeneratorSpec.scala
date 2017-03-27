@@ -1,9 +1,9 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt.request
 
-import io.toolsplus.atlassian.connect.jwt.scala._
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.jwt._
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalatest.Assertion
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
