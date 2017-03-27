@@ -23,13 +23,6 @@ class AddonProperties @Inject()(config: Configuration) {
   /** Base URL of this add-on. */
   lazy val baseUrl: String = atlassianConnectConfig.getString("baseUrl").get
 
-  /** Flag determining whether Atlassian Connect license checking should be
-    * enabled or not.
-    *
-    * In production this flag should be always enabled. */
-  lazy val licenceCheck: Boolean =
-    atlassianConnectConfig.getBoolean("licenseCheck").get
-
   /**
     * Expiration time for self-authentication tokens in seconds.
     */
