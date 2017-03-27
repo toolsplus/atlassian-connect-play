@@ -1,6 +1,5 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import io.toolsplus.atlassian.connect.jwt.scala.generators.util.JwtTestHelper
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
@@ -11,6 +10,7 @@ import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{
   UnknownJwtIssuerError
 }
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
 import org.scalacheck.Gen._
 import org.scalacheck.Shrink
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite

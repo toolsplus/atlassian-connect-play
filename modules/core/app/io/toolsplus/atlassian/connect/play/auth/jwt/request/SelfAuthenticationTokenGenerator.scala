@@ -4,10 +4,10 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 import com.google.inject.Inject
-import io.toolsplus.atlassian.connect.jwt.scala.JwtSigningError
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.jwt.JwtSigningError
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 
 /**
   * Generator of JSON Web Tokens for authenticating requests from the

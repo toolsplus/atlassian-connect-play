@@ -1,12 +1,16 @@
 package io.toolsplus.atlassian.connect.play.actions
 
-import io.toolsplus.atlassian.connect.jwt.scala.api.Predef.RawJwt
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, JwtAuthenticationProvider, JwtCredentials}
+import io.toolsplus.atlassian.connect.play.auth.jwt.{
+  CanonicalPlayHttpRequest,
+  JwtAuthenticationProvider,
+  JwtCredentials
+}
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
 import org.scalatest.EitherValues
