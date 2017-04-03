@@ -22,7 +22,9 @@ add a the framework dependency to your project to turn it into an Atlassian Conn
 
 ### Creating a project from the seed project
 
-...
+The easiest way to get started is by cloning the [Atlassian Connect Play Seed](atlassian-connect-play-seed) 
+project.
+
 
 ### Modifying an existing project
 
@@ -70,4 +72,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+[atlassian-connect-play-seed]: https://github.com/toolsplus/atlassian-connect-play-seed
 [apache]: http://www.apache.org/licenses/LICENSE-2.0

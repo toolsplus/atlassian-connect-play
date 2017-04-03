@@ -6,7 +6,7 @@ import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
 import play.api.Configuration
 
 /** Class containing add-on properties such as add-on key, name, base url,
-  * etc. by reading them lazily from a Play configuration.
+  * etc.
   *
   * All values are read lazily from Play config files, hence they will be
   * cached for the lifetime of the Play app.
@@ -15,24 +15,15 @@ import play.api.Configuration
 class AddonProperties @Inject()(config: Configuration) {
 
   /** Key of this add-on. */
-  lazy val key: AddonKey = atlassianConnectConfig.getString("key").get
+  lazy val key: AddonKey = addonConfig.getString("key").get
 
   /** Name of this add-on. */
-  lazy val name: String = atlassianConnectConfig.getString("name").get
+  lazy val name: String = addonConfig.getString("name").get
 
   /** Base URL of this add-on. */
-  lazy val baseUrl: String = atlassianConnectConfig.getString("baseUrl").get
+  lazy val baseUrl: String = addonConfig.getString("baseUrl").get
 
-  /**
-    * Expiration time for self-authentication tokens in seconds.
-    */
-  lazy val selfAuthenticationExpirationTime: Int =
-    atlassianConnectConfig.getInt("selfAuthenticationExpirationTime").get
-
-  lazy val allowReinstallMissingHost: Boolean =
-    atlassianConnectConfig.getBoolean("allowReinstallMissingHost").get
-
-  private lazy val atlassianConnectConfig =
-    config.getConfig("atlassian.connect").get
+  private lazy val addonConfig =
+    config.getConfig("addon").get
 
 }

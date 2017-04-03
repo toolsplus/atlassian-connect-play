@@ -4,12 +4,8 @@ import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalPlayHttpRequest,
-  JwtAuthenticationProvider,
-  JwtCredentials
-}
-import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, JwtAuthenticationProvider, JwtCredentials}
+import io.toolsplus.atlassian.connect.play.models.{AddonProperties, AtlassianConnectProperties}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
@@ -31,11 +27,12 @@ class JwtAuthenticationActionsSpec
 
   val hostRepository = mock[AtlassianHostRepository]
   val addonProperties = new AddonProperties(config)
+  val connectProperties = new AtlassianConnectProperties(config)
   val jwtAuthenticationProvider =
     new JwtAuthenticationProvider(hostRepository, addonProperties)
 
   val $ =
-    new JwtAuthenticationActions(jwtAuthenticationProvider, addonProperties)
+    new JwtAuthenticationActions(jwtAuthenticationProvider, connectProperties)
 
   "JwtAuthenticationActions" when {
 

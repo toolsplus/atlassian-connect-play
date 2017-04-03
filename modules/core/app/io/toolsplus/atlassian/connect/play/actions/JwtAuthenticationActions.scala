@@ -4,10 +4,17 @@ import cats.implicits._
 import com.google.inject.Inject
 import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
-import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{JwtAuthenticationError, UnknownJwtIssuerError}
-import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, JwtAuthenticationProvider, JwtCredentials}
+import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{
+  JwtAuthenticationError,
+  UnknownJwtIssuerError
+}
+import io.toolsplus.atlassian.connect.play.auth.jwt.{
+  CanonicalPlayHttpRequest,
+  JwtAuthenticationProvider,
+  JwtCredentials
+}
 import io.toolsplus.atlassian.connect.play.controllers.routes
-import io.toolsplus.atlassian.connect.play.models.AddonProperties
+import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.mvc.Results._
@@ -18,7 +25,7 @@ import scala.concurrent.Future
 
 class JwtAuthenticationActions @Inject()(
     jwtAuthenticationProvider: JwtAuthenticationProvider,
-    addonProperties: AddonProperties) {
+    connectProperties: AtlassianConnectProperties) {
 
   private val logger = Logger(classOf[JwtAuthenticationActions])
 
@@ -128,7 +135,7 @@ class JwtAuthenticationActions @Inject()(
       e match {
         case UnknownJwtIssuerError(_) =>
           (isInstalledLifecycleRequest(request) &&
-            addonProperties.allowReinstallMissingHost) ||
+            connectProperties.allowReinstallMissingHost) ||
             isUninstalledLifecycleRequest(request)
         case _ => false
       }
