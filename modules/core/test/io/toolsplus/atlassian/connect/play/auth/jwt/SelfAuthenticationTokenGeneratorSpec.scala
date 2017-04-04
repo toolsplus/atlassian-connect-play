@@ -1,4 +1,4 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt.request
+package io.toolsplus.atlassian.connect.play.auth.jwt
 
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.models.{
@@ -24,7 +24,7 @@ class SelfAuthenticationTokenGeneratorSpec
   val $ =
     new SelfAuthenticationTokenGenerator(addonProperties, connectProperties)
 
-  private val leewaySeconds = 30
+  val toleranceSeconds = 2
 
   "A SelfAuthenticationTokenGenerator" when {
 
@@ -38,7 +38,7 @@ class SelfAuthenticationTokenGeneratorSpec
           def assertion(jwt: Jwt) = {
             val expiry = jwt.claims.getExpirationTime.getTime / 1000
             val expectedExpiry = now + connectProperties.selfAuthenticationExpirationTime
-            expiry mustBe expectedExpiry +- leewaySeconds
+            expiry mustBe expectedExpiry +- toleranceSeconds
           }
 
           validate(assertion)(result)

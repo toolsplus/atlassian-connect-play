@@ -1,4 +1,4 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt.exception
+package io.toolsplus.atlassian.connect.play.auth.jwt
 
 sealed abstract class JwtAuthenticationError extends Exception {
   final override def fillInStackTrace(): Throwable = this

@@ -2,8 +2,10 @@ package io.toolsplus.atlassian.connect.play.generators
 
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtCredentials
-import io.toolsplus.atlassian.connect.play.auth.jwt.request.SelfAuthenticationTokenGenerator
+import io.toolsplus.atlassian.connect.play.auth.jwt.{
+  JwtCredentials,
+  SelfAuthenticationTokenGenerator
+}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import io.toolsplus.atlassian.jwt.generators.core.JwtGen
 import io.toolsplus.atlassian.jwt.generators.nimbus.NimbusGen

@@ -42,7 +42,7 @@ trait SecurityContextGen {
       sharedSecret <- alphaNumStr.suchThat(s => s.length >= 32 && !s.isEmpty)
       serverVersion <- numStr
       pluginsVersion <- pluginVersionGen
-      baseUrl <- alphaStr
+      baseUrl <- alphaStr.suchThat(!_.isEmpty)
       productType <- productTypeGen
       description <- alphaStr
       serviceEntitlementNumber <- option(numStr)
@@ -54,7 +54,7 @@ trait SecurityContextGen {
        sharedSecret,
        serverVersion,
        pluginsVersion,
-       baseUrl,
+       s"https://$baseUrl.atlassian.net",
        productType,
        description,
        serviceEntitlementNumber)
