@@ -77,6 +77,7 @@ lazy val `atlassian-connect-play-core` = project
   .in(file("modules/core"))
   .enablePlugins(PlayScala)
   .settings(libraryDependencies ++= Dependencies.core)
+  .settings(libraryDependencies += ws)
   .settings(commonSettings: _*)
   .settings(scoverageSettings: _*)
   .settings(publishSettings)

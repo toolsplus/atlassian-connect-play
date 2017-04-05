@@ -1,4 +1,4 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt.request
+package io.toolsplus.atlassian.connect.play.auth.jwt
 
 import java.time.temporal.ChronoUnit
 import java.time.{Duration, Instant}

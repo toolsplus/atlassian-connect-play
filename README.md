@@ -6,7 +6,9 @@ Atlassian Connect Play
 [![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.11)
 
 
-This project contains a [Play Scala](https://www.playframework.com/) based implementation of the [Atlassian Connect](https://connect.atlassian.com/) framework. It serves as a starter for building Atlassian Connect add-ons for JIRA and Confluence.
+This project contains a [Play Scala](https://www.playframework.com/) based implementation 
+of the [Atlassian Connect](https://connect.atlassian.com/) framework. It serves as a starter 
+for building Atlassian Connect add-ons for JIRA and Confluence.
 
 ## Quick start
 
@@ -16,19 +18,14 @@ atlassian-connect-play is published to Maven Central for Scala 2.11 so you can j
 
 ## Basics
 
-To get started, there are two options. You can generate a fresh project by cloning the seed project, which
-will provide you with the basic project structure. Alternatively if you have an existing Scala project, you can manually
+You can generate a fresh project by cloning the seed project, which will provide 
+you with the basic project structure. Alternatively if you have an existing Scala project, you can manually
 add a the framework dependency to your project to turn it into an Atlassian Connect add-on.
 
 ### Creating a project from the seed project
 
 The easiest way to get started is by cloning the [Atlassian Connect Play Seed](atlassian-connect-play-seed) 
 project.
-
-
-### Modifying an existing project
-
-...
 
 ## Responding to requests
  
@@ -41,10 +38,47 @@ project.
 
 ### Send requests as the add-on
 
+atlassian-connect-play will automatically sign requests from your add-on to an installed host product with JSON Web Tokens. To make a request, inject an `AtlassianConnectHttpClient` object into your class.
+Then call `authenticatedAsAddon(url)` with a relative URL. Make sure you have a implicit instance of `AtlassianHost` available in the calling function. It is required to sign and determine
+the absolute URL for the outgoing request.
+
+    class RestClient @Inject()(httpClient: AtlassianConnectHttpClient) {
+   
+        def fetchIssue(issueKey: String)(implicit host: AtlassianHost): Future[WSResponse] = {
+            httpClient.authenticatedAsAddon(s"/rest/api/2/issue/$issueKey").get
+        }
+    }
+
 ### Send requests as a user
+
+Coming soon
 
 ## Authenticating requests from iframe content back to the add-on
 
+The initial request to load iframe content served by the add-on is secured by JWT, as described above. However, add-ons often need to make authenticated requests back to the add-on from within the iframe. Using sessions is not recommended, since some browsers block third-party cookies by default. Also, the JWT token issued by the Atlassian host cannot be used for other requests to the add-on since it contains the `qsh` (query-string hash) claim.
+
+Instead, add-ons can use the JWT *self-authentication token* - provided by atlassian-connect-play. 
+Pages (iframes) rendered by a add-on may include a meta tag containing an initial self-authentication token.
+
+    <meta name="token" content="@token">
+ 
+A client-side script can easily extract the token
+ 
+    document.head.querySelector("[name=token]").content
+ 
+and use it to sign the request back to the add-on. Whenever possible, e.g. for 
+AJAX requests, the token should be sent in the Authorization HTTP header:
+
+    beforeSend: function (request) {
+        request.setRequestHeader("Authorization", "JWT " + token);
+    }
+You can also send the token in the `jwt` query parameter:
+
+    <a href="/protected-resource?jwt=...">See more</a>
+    
+Add-ons may respond to client-side requests with refreshed token provided in the
+Authorization HTTP header. You may save the refreshed token for the next request
+back to the add-on.
 
 ## Reacting to add-on lifecycle events
 

@@ -4,11 +4,6 @@ import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{
-  InvalidJwtError,
-  JwtBadCredentialsError,
-  UnknownJwtIssuerError
-}
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
 import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
 import org.scalacheck.Gen._

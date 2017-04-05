@@ -4,15 +4,7 @@ import cats.implicits._
 import com.google.inject.Inject
 import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
-import io.toolsplus.atlassian.connect.play.auth.jwt.exception.{
-  JwtAuthenticationError,
-  UnknownJwtIssuerError
-}
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalPlayHttpRequest,
-  JwtAuthenticationProvider,
-  JwtCredentials
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt._
 import io.toolsplus.atlassian.connect.play.controllers.routes
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import play.api.Logger
