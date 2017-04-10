@@ -3,12 +3,10 @@ package io.toolsplus.atlassian.connect.play.ws
 import javax.inject.Inject
 
 import com.netaporter.uri.Uri
-import UriImplicits._
-import com.netaporter.uri.config.UriConfig
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
+import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
@@ -20,30 +18,10 @@ class AtlassianHostUriResolver @Inject()(
   def hostFromRequestUrl(uri: Uri): Future[Option[AtlassianHost]] = {
     if (uri.isAbsolute) {
       uri.baseUrl match {
-        case Some(url) =>
-          hostRepository.findByBaseUrl(url).flatMap {
-            case result @ Some(_) => Future.successful(result)
-            case None => findByBaseUrlWithFirstPathElement(uri)
-          }
+        case Some(url) => hostRepository.findByBaseUrl(url)
         case None => Future.successful(None)
       }
     } else Future.successful(None)
-  }
-
-  private def findByBaseUrlWithFirstPathElement(
-      uri: Uri): Future[Option[AtlassianHost]] = {
-    baseUrlWithFirstPathElement(uri) match {
-      case Some(url) => hostRepository.findByBaseUrl(url)
-      case None => Future.successful(None)
-    }
-  }
-
-  private def baseUrlWithFirstPathElement(uri: Uri): Option[String] = {
-    (uri.baseUrl, uri.pathParts.headOption) match {
-      case (Some(url), Some(pathElement)) =>
-        Some(s"$url/${pathElement.partToString(UriConfig.default)}")
-      case _ => None
-    }
   }
 
 }

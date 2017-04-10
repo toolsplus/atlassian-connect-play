@@ -14,7 +14,7 @@ case class CanonicalUriHttpRequest(httpMethod: String,
     val relPath = requestUri.path
       .replaceFirst(s"^${Uri.parse(contextPath)}", "")
       .replaceFirst("/$", "")
-    if (relPath.isEmpty) "/" else relPath
+    if (relPath.isEmpty) "/" else Uri.parse(relPath).path
   }
 
   override def parameterMap = requestUri.query.paramMap

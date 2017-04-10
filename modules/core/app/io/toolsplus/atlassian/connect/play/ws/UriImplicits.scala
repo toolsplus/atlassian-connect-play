@@ -20,7 +20,8 @@ object UriImplicits {
         case Failure(_) => None
       }
 
-    def append(other: Uri): Uri = Uri.parse(s"$uri$other")
+    def append(other: Uri): Uri =
+      Uri.apply(uri.toURI.resolve(other.toURI))
 
     def asRelativeUri: Uri =
       uri.copy(scheme = None,

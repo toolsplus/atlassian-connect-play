@@ -53,15 +53,10 @@ class AtlassianHostUriResolverSpec extends TestSpec {
 
       "return None if no matching host can be found" in {
         forAll(pathGen, atlassianHostGen) { (path, host) =>
-          val firstPathElement = "x"
-          val uri = Uri.parse(s"${host.baseUrl}/x/$path")
+          val uri = Uri.parse(s"${host.baseUrl}/$path")
 
           (hostRepository
             .findByBaseUrl(_: String)) expects uri.baseUrl.get returning Future
-            .successful(None)
-
-          (hostRepository
-            .findByBaseUrl(_: String)) expects s"${uri.baseUrl.get}/$firstPathElement" returning Future
             .successful(None)
 
           val result = await {
