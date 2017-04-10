@@ -152,18 +152,13 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
         forAll(methodGen, pathGen, hostNameGen) {
           (method, relativePath, randomHost) =>
-            val firstPathElement = "x"
             val randomBaseUrl =
-              s"https://$randomHost.atlassian.net/$firstPathElement"
+              s"https://$randomHost.atlassian.net"
             val absoluteUri = absoluteHostUri(randomBaseUrl, relativePath)
             val baseUrl = absoluteUri.baseUrl.get
 
             (hostRepository
               .findByBaseUrl(_: String)) expects baseUrl returning Future
-              .successful(None)
-
-            (hostRepository
-              .findByBaseUrl(_: String)) expects s"$baseUrl/$firstPathElement" returning Future
               .successful(None)
 
             val result = await {

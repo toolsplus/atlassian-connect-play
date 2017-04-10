@@ -3,6 +3,7 @@ package io.toolsplus.atlassian.connect.play.auth.jwt
 import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.TestSpec
 import org.scalacheck.Shrink
+import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 
 class CanonicalUriHttpRequestSpec extends TestSpec {
 
@@ -26,7 +27,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
           (method, relativePath, contextPath) =>
             val relativeUri = Uri.parse(relativePath)
             val contextUri = Uri.parse(contextPath)
-            val requestUri = Uri.parse(s"$contextUri$relativeUri")
+            val requestUri = contextUri.append(relativeUri)
             val expectedRelativePath =
               if (relativeUri.path.isEmpty) "/" else relativeUri.path
             CanonicalUriHttpRequest(method, requestUri, contextPath).relativePath mustBe expectedRelativePath
