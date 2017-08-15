@@ -17,13 +17,13 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.0.2"
+  val atlassianJwt = "0.1.0"
   val cats = "0.9.0"
-  val circe = "0.7.0"
+  val circe = "0.8.0"
   val scalaUri = "0.4.16"
-  val scalaTestPlusPlay = "2.0.0"
-  val scalaMock = "3.5.0"
-  val scalaCheck = "1.13.4"
+  val scalaTestPlusPlay = "2.0.1"
+  val scalaMock = "3.6.0"
+  val scalaCheck = "1.13.5"
 }
 
 object Library {
