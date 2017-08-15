@@ -4,9 +4,13 @@ import cats.syntax.either._
 import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
-import org.asynchttpclient.{Request, RequestBuilderBase, SignatureCalculator}
 import play.api.http.HeaderNames.{AUTHORIZATION, USER_AGENT}
 import play.api.libs.ws.WSSignatureCalculator
+import play.shaded.ahc.org.asynchttpclient.{
+  Request,
+  RequestBuilderBase,
+  SignatureCalculator
+}
 
 class JwtSignatureCalculator(host: AtlassianHost, jwtGenerator: JwtGenerator)
     extends WSSignatureCalculator

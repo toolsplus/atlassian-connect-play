@@ -8,6 +8,8 @@ import io.toolsplus.atlassian.connect.play.actions.LifecycleActions.{
 import org.scalacheck.Gen._
 import play.api.mvc.Results.BadRequest
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class LifecycleActionsSpec extends TestSpec {
 
   "A LifecycleAction" when {

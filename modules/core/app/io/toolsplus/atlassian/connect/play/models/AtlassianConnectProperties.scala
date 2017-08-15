@@ -18,22 +18,18 @@ class AtlassianConnectProperties @Inject()(config: Configuration) {
     * Expiration time for self-authentication tokens in seconds.
     */
   lazy val selfAuthenticationExpirationTime: Int =
-    atlassianConnectConfig
-      .getInt("selfAuthenticationExpirationTime")
-      .getOrElse(900)
+    atlassianConnectConfig.get[Int]("selfAuthenticationExpirationTime")
 
   lazy val allowReinstallMissingHost: Boolean =
-    atlassianConnectConfig
-      .getBoolean("allowReinstallMissingHost")
-      .getOrElse(false)
+    atlassianConnectConfig.get[Boolean]("allowReinstallMissingHost")
 
   /**
     * Expiration time for JSON Web Tokens in seconds.
     */
   lazy val jwtExpirationTime: Int =
-    atlassianConnectConfig.getInt("jwtExpirationTime").getOrElse(180)
+    atlassianConnectConfig.get[Int]("jwtExpirationTime")
 
   private lazy val atlassianConnectConfig =
-    config.getConfig("atlassian.connect").get
+    config.get[Configuration]("atlassian.connect")
 
 }
