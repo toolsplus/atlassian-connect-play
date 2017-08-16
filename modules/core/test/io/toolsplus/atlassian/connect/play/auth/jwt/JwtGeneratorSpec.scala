@@ -34,7 +34,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
   val hostRepository = mock[AtlassianHostRepository]
   val hostUriResolver = new AtlassianHostUriResolver(hostRepository)
 
-  val $ =
+  val jwtGenerator =
     new JwtGenerator(addonProperties, connectProperties, hostUriResolver)
 
   val toleranceSeconds = 2
@@ -47,9 +47,9 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         forAll(methodGen, pathGen, atlassianHostGen) {
           (method, relativePath, host) =>
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
-            $.createJwtToken(method, absoluteUri, host) match {
+            jwtGenerator.createJwtToken(method, absoluteUri, host) match {
               case Right(_) => succeed
-              case Left(_) => fail
+              case Left(_)  => fail
             }
         }
       }
@@ -72,7 +72,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       "set query string hash to proper generated value" in {
         tokenPropertyTest { jwt =>
           val qsh = jwt.claims.getClaim("qsh").asInstanceOf[String]
-          qsh must not be null
+          Option(qsh) must not be empty
           qsh must not be ""
         }
       }
@@ -81,7 +81,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         forAll(methodGen, pathGen, atlassianHostGen) {
           (method, relativePath, host) =>
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
-            $.createJwtToken(method, absoluteUri, host) match {
+            jwtGenerator.createJwtToken(method, absoluteUri, host) match {
               case Right(rawJwt) => {
                 val request =
                   CanonicalUriHttpRequest(method, absoluteUri, host.baseUrl)
@@ -89,7 +89,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
                   HttpRequestCanonicalizer.computeCanonicalRequestHash(request)
                 JwtReader(host.sharedSecret).readAndVerify(rawJwt, qsh) match {
                   case Right(_) => succeed
-                  case Left(e) => fail(e)
+                  case Left(e)  => fail(e)
                 }
               }
               case Left(_) => fail
@@ -101,7 +101,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         forAll(methodGen, pathGen, atlassianHostGen) {
           (method, relativePath, host) =>
             val result =
-              $.createJwtToken(method, Uri.parse(relativePath), host)
+              jwtGenerator.createJwtToken(method, Uri.parse(relativePath), host)
             result mustBe Left(RelativeUriError)
         }
       }
@@ -111,7 +111,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
           (method, relativePath, host, randomHost) =>
             val randomBaseUrl = s"https://$randomHost.atlassian.net"
             val absoluteUri = absoluteHostUri(randomBaseUrl, relativePath)
-            val result = $.createJwtToken(method, absoluteUri, host)
+            val result = jwtGenerator.createJwtToken(method, absoluteUri, host)
             result mustBe Left(BaseUrlMismatchError)
         }
       }
@@ -130,11 +130,11 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
               .successful(Some(host))
 
             val result = await {
-              $.createJwtToken(method, absoluteUri)
+              jwtGenerator.createJwtToken(method, absoluteUri)
             }
             result match {
               case Right(_) => succeed
-              case Left(_) => fail
+              case Left(_)  => fail
             }
         }
       }
@@ -142,7 +142,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       "fail if given URI is not absolute" in {
         forAll(methodGen, pathGen) { (method, relativePath) =>
           val result = await {
-            $.createJwtToken(method, Uri.parse(relativePath))
+            jwtGenerator.createJwtToken(method, Uri.parse(relativePath))
           }
           result mustBe Left(RelativeUriError)
         }
@@ -155,14 +155,13 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
             val randomBaseUrl =
               s"https://$randomHost.atlassian.net"
             val absoluteUri = absoluteHostUri(randomBaseUrl, relativePath)
-            val baseUrl = absoluteUri.baseUrl.get
 
             (hostRepository
-              .findByBaseUrl(_: String)) expects baseUrl returning Future
+              .findByBaseUrl(_: String)) expects randomBaseUrl returning Future
               .successful(None)
 
             val result = await {
-              $.createJwtToken(method, absoluteUri)
+              jwtGenerator.createJwtToken(method, absoluteUri)
             }
             result mustBe Left(AtlassianHostNotFoundError(absoluteUri))
         }
@@ -181,7 +180,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
     forAll(methodGen, pathGen, atlassianHostGen) {
       (method, relativePath, host) =>
         val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
-        val result = $.createJwtToken(method, absoluteUri, host)
+        val result = jwtGenerator.createJwtToken(method, absoluteUri, host)
         validate(assertion)(result)
     }
 
@@ -191,7 +190,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       case Right(rawJwt) =>
         JwtParser.parse(rawJwt) match {
           case Right(jwt) => assertion(jwt)
-          case Left(e) => fail(e)
+          case Left(e)    => fail(e)
         }
       case Left(_) => fail
     }

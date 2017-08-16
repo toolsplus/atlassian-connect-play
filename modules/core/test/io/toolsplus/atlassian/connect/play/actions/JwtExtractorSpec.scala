@@ -18,7 +18,7 @@ class JwtExtractorSpec extends TestSpec {
       "successfully extract token from request header" in {
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
-          val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AUTHORIZATION_HEADER_PREFIX} $rawJwt"
+          val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
           val jwtCredentials =
             JwtCredentials(rawJwt, CanonicalPlayHttpRequest(jwtRequest))

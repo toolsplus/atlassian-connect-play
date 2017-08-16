@@ -13,21 +13,22 @@ trait AtlassianHostGen extends SecurityContextGen {
     for {
       securityContext <- securityContextGen
       installed <- oneOf(true, false)
-    } yield
+    } yield {
       AtlassianHost(
-        securityContext._2,
-        securityContext._1,
-        securityContext._3,
-        securityContext._4,
-        securityContext._5,
-        securityContext._6,
-        securityContext._7,
-        securityContext._8,
-        securityContext._9,
-        securityContext._10,
-        securityContext._11,
+        securityContext.clientKey,
+        securityContext.key,
+        securityContext.publicKey,
+        securityContext.oauthClientId,
+        securityContext.sharedSecret,
+        securityContext.serverVersion,
+        securityContext.pluginsVersion,
+        securityContext.baseUrl,
+        securityContext.productType,
+        securityContext.description,
+        securityContext.serviceEntitlementNumber,
         installed
       )
+    }
 
   def atlassianHostUserGen: Gen[AtlassianHostUser] =
     for {

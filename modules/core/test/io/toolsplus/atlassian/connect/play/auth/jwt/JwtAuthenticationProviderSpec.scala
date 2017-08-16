@@ -20,7 +20,8 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
   val hostRepository = mock[AtlassianHostRepository]
   val addonProperties = new AddonProperties(config)
 
-  val $ = new JwtAuthenticationProvider(hostRepository, addonProperties)
+  val jwtAuthenticationProvider =
+    new JwtAuthenticationProvider(hostRepository, addonProperties)
 
   "A JwtAuthenticationProvider" when {
 
@@ -29,7 +30,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
       "fail if credentials cannot be parsed" in {
         forAll(jwtCredentialsGen()) { credentials =>
           val result = await {
-            $.authenticate(credentials.copy(rawJwt = "bogus")).value
+            jwtAuthenticationProvider
+              .authenticate(credentials.copy(rawJwt = "bogus"))
+              .value
           }
           val expectedParseExceptionMessage =
             "Invalid serialized unsecured/JWS/JWE object: Missing part delimiters"
@@ -54,7 +57,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
                 .successful(None)
 
               val result = await {
-                $.authenticate(credentials).value
+                jwtAuthenticationProvider.authenticate(credentials).value
               }
               result mustBe Left(UnknownJwtIssuerError(host.clientKey))
           }
@@ -74,7 +77,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
           forAll(jwtCredentialsGen(secret = host.sharedSecret, customClaims)) {
             credentials =>
               val result = await {
-                $.authenticate(credentials).value
+                jwtAuthenticationProvider.authenticate(credentials).value
               }
               val expectedMessage =
                 "Missing client key claim for Atlassian token"
@@ -102,7 +105,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
                 .successful(Some(host))
 
               val result = await {
-                $.authenticate(invalidSignatureCredentials).value
+                jwtAuthenticationProvider
+                  .authenticate(invalidSignatureCredentials)
+                  .value
               }
               result mustBe Left(
                 InvalidJwtError(invalidSignatureCredentials.rawJwt))
@@ -123,7 +128,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
                 .successful(Some(host))
 
               val result = await {
-                $.authenticate(credentials).value
+                jwtAuthenticationProvider.authenticate(credentials).value
               }
               result mustBe Right(AtlassianHostUser(host, Option(subject)))
           }
@@ -145,7 +150,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
                                                host,
                                                customClaims)) { credentials =>
             val result = await {
-              $.authenticate(credentials).value
+              jwtAuthenticationProvider.authenticate(credentials).value
             }
             val expectedMessage =
               "Missing audience for self-authentication token"
@@ -165,7 +170,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
                                                host,
                                                customClaims)) { credentials =>
             val result = await {
-              $.authenticate(credentials).value
+              jwtAuthenticationProvider.authenticate(credentials).value
             }
             val expectedMessage =
               s"Invalid audience ($someAudience) for self-authentication token"
@@ -182,11 +187,11 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
           val claimsWithoutClientKeyClaim =
             Seq("iss" -> addonProperties.key,
                 "aud" -> Seq(addonProperties.key).asJava)
-          forAll(jwtCredentialsGen(host.sharedSecret,
-                                   claimsWithoutClientKeyClaim)) {
+          forAll(
+            jwtCredentialsGen(host.sharedSecret, claimsWithoutClientKeyClaim)) {
             credentials =>
               val result = await {
-                $.authenticate(credentials).value
+                jwtAuthenticationProvider.authenticate(credentials).value
               }
               val expectedMessage =
                 "Missing client key claim for self-authentication token"
@@ -210,7 +215,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
               .successful(Some(host))
 
             val result = await {
-              $.authenticate(credentials).value
+              jwtAuthenticationProvider.authenticate(credentials).value
             }
             result mustBe Right(AtlassianHostUser(host, Option(subject)))
           }

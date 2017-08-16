@@ -16,17 +16,17 @@ trait LifecycleEventGen extends SecurityContextGen {
     } yield
       InstalledEvent(
         eventType,
-        securityContext._1,
-        securityContext._2,
-        securityContext._3,
-        securityContext._4,
-        securityContext._5,
-        securityContext._6,
-        securityContext._7,
-        securityContext._8,
-        securityContext._9,
-        securityContext._10,
-        securityContext._11
+        securityContext.key,
+        securityContext.clientKey,
+        securityContext.publicKey,
+        securityContext.oauthClientId,
+        securityContext.sharedSecret,
+        securityContext.serverVersion,
+        securityContext.pluginsVersion,
+        securityContext.baseUrl,
+        securityContext.productType,
+        securityContext.description,
+        securityContext.serviceEntitlementNumber
       )
 
   def genericEventTypeGen: Gen[String] =
@@ -39,16 +39,16 @@ trait LifecycleEventGen extends SecurityContextGen {
     } yield
       GenericEvent(
         eventType,
-        securityContext._1,
-        securityContext._2,
-        securityContext._3,
-        securityContext._4,
-        securityContext._6,
-        securityContext._7,
-        securityContext._8,
-        securityContext._9,
-        securityContext._10,
-        securityContext._11
+        securityContext.key,
+        securityContext.clientKey,
+        securityContext.publicKey,
+        securityContext.oauthClientId,
+        securityContext.serverVersion,
+        securityContext.pluginsVersion,
+        securityContext.baseUrl,
+        securityContext.productType,
+        securityContext.description,
+        securityContext.serviceEntitlementNumber
       )
 
 }

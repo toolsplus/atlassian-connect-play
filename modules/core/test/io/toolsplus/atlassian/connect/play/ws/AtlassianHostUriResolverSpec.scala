@@ -4,7 +4,6 @@ import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import org.scalacheck.Gen._
-import UriImplicits._
 
 import scala.concurrent.Future
 
@@ -41,7 +40,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
           val uri = Uri.parse(s"${host.baseUrl}/$path")
 
           (hostRepository
-            .findByBaseUrl(_: String)) expects uri.baseUrl.get returning Future
+            .findByBaseUrl(_: String)) expects host.baseUrl returning Future
             .successful(Some(host))
 
           val result = await {
@@ -56,7 +55,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
           val uri = Uri.parse(s"${host.baseUrl}/$path")
 
           (hostRepository
-            .findByBaseUrl(_: String)) expects uri.baseUrl.get returning Future
+            .findByBaseUrl(_: String)) expects host.baseUrl returning Future
             .successful(None)
 
           val result = await {

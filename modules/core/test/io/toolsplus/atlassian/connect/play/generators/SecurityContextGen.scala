@@ -4,6 +4,18 @@ import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
+case class SecurityContext(key: String,
+                           clientKey: ClientKey,
+                           publicKey: String,
+                           oauthClientId: Option[String],
+                           sharedSecret: String,
+                           serverVersion: String,
+                           pluginsVersion: String,
+                           baseUrl: String,
+                           productType: String,
+                           description: String,
+                           serviceEntitlementNumber: Option[String])
+
 /**
   * Security context generator generates a security context as provided in the
   * Atlassian Connect installed event. It can be used to generate objects of
@@ -22,18 +34,7 @@ trait SecurityContextGen {
 
   def productTypeGen: Gen[String] = oneOf("jira", "confluence")
 
-  def securityContextGen: Gen[
-    Tuple11[String,
-            ClientKey,
-            String,
-            Option[String],
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-            Option[String]]] =
+  def securityContextGen: Gen[SecurityContext]=
     for {
       key <- alphaStr
       clientKey <- clientKeyGen
@@ -47,7 +48,7 @@ trait SecurityContextGen {
       description <- alphaStr
       serviceEntitlementNumber <- option(numStr)
     } yield
-      (key,
+      SecurityContext(key,
        clientKey,
        publicKey,
        oauthClientId,
