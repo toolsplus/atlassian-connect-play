@@ -28,7 +28,7 @@ class SelfAuthenticationTokenGenerator @Inject()(
     val jwt = new JwtBuilder(expirationAfter)
       .withIssuer(addonProperties.key)
       .withAudience(Seq(addonProperties.key))
-      .withClaim(SelfAuthenticationTokenGenerator.HOST_CLIENT_KEY_CLAIM,
+      .withClaim(SelfAuthenticationTokenGenerator.HostClientKeyClaim,
                  hostUser.host.clientKey)
     hostUser.userKey.map(jwt.withSubject)
     jwt.build(hostUser.host.sharedSecret)
@@ -41,5 +41,5 @@ object SelfAuthenticationTokenGenerator {
     * The name of the JWT claim used for the client key of the Atlassian host
     * in self-authentication tokens.
     */
-  val HOST_CLIENT_KEY_CLAIM = "clientKey"
+  val HostClientKeyClaim = "clientKey"
 }
