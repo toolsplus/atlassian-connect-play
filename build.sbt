@@ -1,6 +1,6 @@
 val commonSettings = Seq(
   organization := "io.toolsplus",
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.12.3",
   resolvers ++= Seq(
     "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",
     "Bintary JCenter" at "http://jcenter.bintray.com"
@@ -77,7 +77,7 @@ lazy val `atlassian-connect-play-core` = project
   .in(file("modules/core"))
   .enablePlugins(PlayScala)
   .settings(libraryDependencies ++= Dependencies.core)
-  .settings(libraryDependencies += ws)
+  .settings(libraryDependencies ++= Seq(ws, guice))
   .settings(commonSettings: _*)
   .settings(scoverageSettings: _*)
   .settings(publishSettings)

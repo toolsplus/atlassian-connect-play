@@ -40,7 +40,7 @@ trait HttpGen {
   def toQueryString(params: Map[String, Seq[String]]) =
     params
       .map {
-        case (key: String, values: List[String]) =>
+        case (key: String, values: Seq[String]) =>
           s"$key=${values.mkString(",")}"
       }
       .mkString("&")

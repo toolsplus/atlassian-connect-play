@@ -15,15 +15,14 @@ import play.api.Configuration
 class AddonProperties @Inject()(config: Configuration) {
 
   /** Key of this add-on. */
-  lazy val key: AddonKey = addonConfig.getString("key").get
+  lazy val key: AddonKey = addonConfig.get[String]("key")
 
   /** Name of this add-on. */
-  lazy val name: String = addonConfig.getString("name").get
+  lazy val name: String = addonConfig.get[String]("name")
 
   /** Base URL of this add-on. */
-  lazy val baseUrl: String = addonConfig.getString("baseUrl").get
+  lazy val baseUrl: String = addonConfig.get[String]("baseUrl")
 
-  private lazy val addonConfig =
-    config.getConfig("addon").get
+  private lazy val addonConfig = config.get[Configuration]("addon")
 
 }

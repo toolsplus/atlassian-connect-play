@@ -7,15 +7,19 @@ import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
 import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
 import org.scalacheck.Shrink
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.HeaderNames.{AUTHORIZATION, USER_AGENT}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Action, BodyParsers, RequestHeader, Results}
+import play.api.mvc._
 import play.api.test.{Helpers, TestServer, WsTestClient}
 
 import scala.concurrent.{Future, Promise}
 
-class AtlassianConnectHttpClientSpec extends TestSpec {
+class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
+
+  val action = app.injector.instanceOf[DefaultActionBuilder]
+  val parser = app.injector.instanceOf[PlayBodyParsers]
 
   val testServerPort = 44444
   val jwtGenerator = mock[JwtGenerator]
@@ -39,7 +43,6 @@ class AtlassianConnectHttpClientSpec extends TestSpec {
         forAll(atlassianHostGen) { (host) =>
           val path = "foo"
           forAll(jwtCredentialsGen(host, subject = "bar")) { credentials =>
-            val absoluteHostUri = Uri.parse(s"${host.baseUrl}/$path")
             val absoluteRequestUri =
               Uri.parse(s"http://localhost:$testServerPort/$path")
 
@@ -72,7 +75,7 @@ class AtlassianConnectHttpClientSpec extends TestSpec {
     val app = GuiceApplicationBuilder()
       .routes {
         case _ =>
-          Action(BodyParsers.parse.raw) { request =>
+          action(parser.raw) { request =>
             promise.success(
               (request, request.body.asBytes().getOrElse(ByteString.empty)))
             Results.Ok
