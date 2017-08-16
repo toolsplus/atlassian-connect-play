@@ -18,14 +18,14 @@ object JwtExtractor {
     request.headers
       .get(HeaderNames.AUTHORIZATION)
       .filter(header =>
-        !header.isEmpty && header.startsWith(AUTHORIZATION_HEADER_PREFIX))
-      .map(_.substring(AUTHORIZATION_HEADER_PREFIX.length).trim)
+        !header.isEmpty && header.startsWith(AuthorizationHeaderPrefix))
+      .map(_.substring(AuthorizationHeaderPrefix.length).trim)
   }
 
   private def extractJwtFromParameter[A](request: Request[A]): Option[String] = {
-    request.getQueryString(QUERY_PARAMETER_NAME).filter(!_.isEmpty)
+    request.getQueryString(QueryParameterName).filter(!_.isEmpty)
   }
 
-  private[actions] val AUTHORIZATION_HEADER_PREFIX = "JWT "
-  private[actions] val QUERY_PARAMETER_NAME = "jwt"
+  private[actions] val AuthorizationHeaderPrefix = "JWT "
+  private[actions] val QueryParameterName = "jwt"
 }

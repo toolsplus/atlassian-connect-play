@@ -61,7 +61,7 @@ class OptionalAtlassianHostUserActionSpec
       "successfully refine request to MaybeJwtRequest including token" in {
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
-          val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AUTHORIZATION_HEADER_PREFIX} $rawJwt"
+          val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
           val jwtCredentials =
             JwtCredentials(rawJwt, CanonicalPlayHttpRequest(jwtRequest))
@@ -115,7 +115,7 @@ class OptionalAtlassianHostUserActionSpec
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(atlassianHostGen, alphaStr) { (host, subject) =>
           forAll(jwtCredentialsGen(host, subject)) { credentials =>
-            val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AUTHORIZATION_HEADER_PREFIX} ${credentials.rawJwt}"
+            val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} ${credentials.rawJwt}"
             val request =
               FakeRequest(Helpers.POST, "/uninstalled").withHeaders(jwtHeader)
             val jwtRequest = MaybeJwtRequest(Some(credentials), request)

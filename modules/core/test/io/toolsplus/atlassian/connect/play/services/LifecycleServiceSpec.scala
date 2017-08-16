@@ -13,7 +13,7 @@ class LifecycleServiceSpec extends TestSpec {
 
   val hostRepository = mock[AtlassianHostRepository]
 
-  val $ = new LifecycleService(hostRepository)
+  val lifecycleService = new LifecycleService(hostRepository)
 
   "A LifecycleService" when {
 
@@ -25,7 +25,9 @@ class LifecycleServiceSpec extends TestSpec {
             val invalidInstalledEvent =
               installedEvent.copy(eventType = randomEventType)
             val result = await {
-              $.installed(invalidInstalledEvent)(maybeHostUser).value
+              lifecycleService
+                .installed(invalidInstalledEvent)(maybeHostUser)
+                .value
             }
             result mustBe Left(InvalidLifecycleEventTypeError)
         }
@@ -49,7 +51,7 @@ class LifecycleServiceSpec extends TestSpec {
               .successful(newHost)
 
             val result = await {
-              $.installed(installedEvent)(Some(hostUser)).value
+              lifecycleService.installed(installedEvent)(Some(hostUser)).value
             }
             result mustBe Right(newHost)
         }
@@ -60,12 +62,14 @@ class LifecycleServiceSpec extends TestSpec {
           (installedEvent, hostUser) =>
             val clientKeyMismatchEvent =
               installedEvent.copy(clientKey = "clientKeyA")
-            val clientKeyMismatchHostUser = hostUser.copy(
-              host = hostUser.host.copy(clientKey = "clientKeyB"))
+            val clientKeyMismatchHostUser =
+              hostUser.copy(host = hostUser.host.copy(clientKey = "clientKeyB"))
 
             val result = await {
-              $.installed(clientKeyMismatchEvent)(
-                Some(clientKeyMismatchHostUser)).value
+              lifecycleService
+                .installed(clientKeyMismatchEvent)(
+                  Some(clientKeyMismatchHostUser))
+                .value
             }
             result mustBe Left(HostForbiddenError)
         }
@@ -88,7 +92,7 @@ class LifecycleServiceSpec extends TestSpec {
             .successful(newHost)
 
           val result = await {
-            $.installed(installedEvent)(None).value
+            lifecycleService.installed(installedEvent)(None).value
           }
           result mustBe Right(newHost)
         }
@@ -103,7 +107,7 @@ class LifecycleServiceSpec extends TestSpec {
             .successful(Some(hostForEvent))
 
           val result = await {
-            $.installed(installedEvent)(None).value
+            lifecycleService.installed(installedEvent)(None).value
           }
           result mustBe Left(MissingJwtError)
         }
@@ -133,7 +137,7 @@ class LifecycleServiceSpec extends TestSpec {
               .successful(uninstalledHost)
 
             val result = await {
-              $.uninstalled(uninstalledEvent)(hostUser).value
+              lifecycleService.uninstalled(uninstalledEvent)(hostUser).value
             }
             result mustBe Right(uninstalledHost)
         }
@@ -154,7 +158,7 @@ class LifecycleServiceSpec extends TestSpec {
               .successful(None)
 
             val result = await {
-              $.uninstalled(uninstalledEvent)(hostUser).value
+              lifecycleService.uninstalled(uninstalledEvent)(hostUser).value
             }
             result mustBe Left(MissingAtlassianHostError)
         }

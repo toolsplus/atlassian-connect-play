@@ -30,10 +30,10 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
 
       "successfully return a WSRequest with resolved host URL" in WsTestClient
         .withClient { client =>
-          val $ = new AtlassianConnectHttpClient(client, jwtGenerator)
+          val httpClient = new AtlassianConnectHttpClient(client, jwtGenerator)
           forAll(pathGen, atlassianHostGen) { (path, host) =>
             val absoluteRequestUri = Uri.parse(s"${host.baseUrl}/$path")
-            val request = $.authenticatedAsAddon(path)(host)
+            val request = httpClient.authenticatedAsAddon(path)(host)
             request.url mustBe absoluteRequestUri.toString
           }
         }
@@ -52,9 +52,9 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
               .returning(Right(credentials.rawJwt))
 
             val (request, _, _) = receiveRequest { hostUrl => wsClient =>
-              val $ = new AtlassianConnectHttpClient(wsClient, jwtGenerator)
+              val httpClient = new AtlassianConnectHttpClient(wsClient, jwtGenerator)
 
-              $.authenticatedAsAddon(s"$hostUrl/$path")(host).get()
+              httpClient.authenticatedAsAddon(s"$hostUrl/$path")(host).get()
             }
             request.headers(AUTHORIZATION).startsWith("JWT ") mustBe true
             request
