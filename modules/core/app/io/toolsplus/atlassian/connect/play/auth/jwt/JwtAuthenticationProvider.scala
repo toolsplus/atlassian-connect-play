@@ -103,7 +103,7 @@ class JwtAuthenticationProvider @Inject()(
     : Either[JwtAuthenticationError, String] = {
     val maybeClientKeyClaim = Option(
       unverifiedClaims
-        .getClaim(SelfAuthenticationTokenGenerator.HOST_CLIENT_KEY_CLAIM)
+        .getClaim(SelfAuthenticationTokenGenerator.HostClientKeyClaim)
         .asInstanceOf[String]
     )
     validateSelfAuthenticationTokenClientKey(maybeClientKeyClaim)

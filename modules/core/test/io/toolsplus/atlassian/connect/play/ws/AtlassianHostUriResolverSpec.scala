@@ -11,7 +11,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
 
   val hostRepository = mock[AtlassianHostRepository]
 
-  val $ = new AtlassianHostUriResolver(hostRepository)
+  val hostUriResolver = new AtlassianHostUriResolver(hostRepository)
 
   "Given a AtlassianHostUriResolver" when {
 
@@ -44,7 +44,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
             .successful(Some(host))
 
           val result = await {
-            $.hostFromRequestUrl(uri)
+            hostUriResolver.hostFromRequestUrl(uri)
           }
           result mustBe Some(host)
         }
@@ -59,7 +59,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
             .successful(None)
 
           val result = await {
-            $.hostFromRequestUrl(uri)
+            hostUriResolver.hostFromRequestUrl(uri)
           }
           result mustBe None
         }
@@ -68,7 +68,7 @@ class AtlassianHostUriResolverSpec extends TestSpec {
       "return None if given URI is relative" in {
         forAll(pathGen) { path =>
           await {
-            $.hostFromRequestUrl(Uri.parse(path))
+            hostUriResolver.hostFromRequestUrl(Uri.parse(path))
           } mustBe None
         }
       }

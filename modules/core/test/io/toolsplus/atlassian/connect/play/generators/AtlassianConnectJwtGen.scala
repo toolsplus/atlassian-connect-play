@@ -28,7 +28,7 @@ trait AtlassianConnectJwtGen extends JwtGen with NimbusGen {
     val claims = Seq(
       "iss" -> addonKey,
       "aud" -> Seq(addonKey).asJava,
-      SelfAuthenticationTokenGenerator.HOST_CLIENT_KEY_CLAIM -> host.clientKey
+      SelfAuthenticationTokenGenerator.HostClientKeyClaim -> host.clientKey
     ) ++ customClaims
 
     for {
