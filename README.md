@@ -6,21 +6,23 @@ Atlassian Connect Play
 [![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.11)
 
 
-This project contains a [Play Scala](https://www.playframework.com/) based implementation 
-of the [Atlassian Connect](https://connect.atlassian.com/) framework. It serves as a starter 
-for building Atlassian Connect add-ons for JIRA and Confluence.
+This project contains a [Play Scala](https://www.playframework.com/) based 
+implementation of the [Atlassian Connect](https://connect.atlassian.com/) framework. 
+It serves as a starter for building Atlassian Connect add-ons for JIRA and Confluence.
 
 ## Quick start
 
-atlassian-connect-play is published to Maven Central for Scala 2.11 so you can just add the following to your build:
+atlassian-connect-play is published to Maven Central for Scala 2.12 and Play 2.6.x, 
+so you can just add the following to your build:
 
-    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.0.3"
+    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.1.0"
 
 ## Basics
 
 You can generate a fresh project by cloning the seed project, which will provide 
-you with the basic project structure. Alternatively if you have an existing Scala project, you can manually
-add a the framework dependency to your project to turn it into an Atlassian Connect add-on.
+you with the basic project structure. Alternatively if you have an existing Scala 
+project, you can manually add a the framework dependency to your project to turn 
+it into an Atlassian Connect add-on.
 
 ### Creating a project from the seed project
 
@@ -38,9 +40,12 @@ project.
 
 ### Send requests as the add-on
 
-atlassian-connect-play will automatically sign requests from your add-on to an installed host product with JSON Web Tokens. To make a request, inject an `AtlassianConnectHttpClient` object into your class.
-Then call `authenticatedAsAddon(url)` with a relative URL. Make sure you have a implicit instance of `AtlassianHost` available in the calling function. It is required to sign and determine
-the absolute URL for the outgoing request.
+atlassian-connect-play will automatically sign requests from your add-on to an 
+installed host product with JSON Web Tokens. To make a request, inject an 
+`AtlassianConnectHttpClient` object into your class.
+Then call `authenticatedAsAddon(url)` with a relative URL. Make sure you have a 
+implicit instance of `AtlassianHost` available in the calling function. It is 
+required to sign and determine the absolute URL for the outgoing request.
 
     class RestClient @Inject()(httpClient: AtlassianConnectHttpClient) {
    
@@ -55,10 +60,17 @@ Coming soon
 
 ## Authenticating requests from iframe content back to the add-on
 
-The initial request to load iframe content served by the add-on is secured by JWT, as described above. However, add-ons often need to make authenticated requests back to the add-on from within the iframe. Using sessions is not recommended, since some browsers block third-party cookies by default. Also, the JWT token issued by the Atlassian host cannot be used for other requests to the add-on since it contains the `qsh` (query-string hash) claim.
+The initial request to load iframe content served by the add-on is secured by 
+JWT, as described above. However, add-ons often need to make authenticated 
+requests back to the add-on from within the iframe. Using sessions is not 
+recommended, since some browsers block third-party cookies by default. Also, the 
+JWT token issued by the Atlassian host cannot be used for other requests to the 
+add-on since it contains the `qsh` (query-string hash) claim.
 
-Instead, add-ons can use the JWT *self-authentication token* - provided by atlassian-connect-play. 
-Pages (iframes) rendered by a add-on may include a meta tag containing an initial self-authentication token.
+Instead, add-ons can use the JWT *self-authentication token* - provided by 
+atlassian-connect-play. 
+Pages (iframes) rendered by a add-on may include a meta tag containing an 
+initial self-authentication token.
 
     <meta name="token" content="@token">
  
