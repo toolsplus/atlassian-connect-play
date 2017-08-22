@@ -3,7 +3,7 @@ Atlassian Connect Play
 
 [![Build Status](https://travis-ci.org/toolsplus/atlassian-connect-play.svg?branch=master)](https://travis-ci.org/toolsplus/atlassian-connect-play)
 [![codecov](https://codecov.io/gh/toolsplus/atlassian-connect-play/branch/master/graph/badge.svg)](https://codecov.io/gh/toolsplus/atlassian-connect-play)
-[![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.11)
+[![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.11)
 
 
 This project contains a [Play Scala](https://www.playframework.com/) based 
