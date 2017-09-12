@@ -5,6 +5,8 @@ import org.scalacheck.Gen.{alphaNumStr, choose, listOf, listOfN, oneOf}
 
 trait HttpGen {
 
+  def statusGen: Gen[Int] = choose(100, 599)
+
   def methodGen: Gen[String] = oneOf("GET", "PUT", "POST", "DELETE", "PATCH")
 
   def pathGen: Gen[String] =
