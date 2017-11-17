@@ -15,7 +15,7 @@ It serves as a starter for building Atlassian Connect add-ons for JIRA and Confl
 atlassian-connect-play is published to Maven Central for Scala 2.12 and Play 2.6.x, 
 so you can just add the following to your build:
 
-    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.1.1"
+    libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "0.1.2"
 
 ## Basics
 
