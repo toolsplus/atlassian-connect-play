@@ -1,6 +1,8 @@
+import ReleaseTransformations._
+
 val commonSettings = Seq(
   organization := "io.toolsplus",
-  scalaVersion := "2.12.3",
+  scalaVersion := "2.12.4",
   resolvers ++= Seq(
     "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",
     "Bintary JCenter" at "http://jcenter.bintray.com"
@@ -49,6 +51,21 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false,
   publishTo := Some(
     Resolver.file("Unused transient repository", file("target/dummyrepo")))
+)
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommand("publishSigned"),
+  setNextVersion,
+  commitNextVersion,
+  releaseStepCommand("sonatypeReleaseAll"),
+  pushChanges
 )
 
 def moduleSettings(project: Project) = {
