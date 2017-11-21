@@ -5,18 +5,11 @@ import cats.implicits._
 import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
-import io.toolsplus.atlassian.connect.play.api.models.{
-  AtlassianHost,
-  AtlassianHostUser
-}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser}
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
-import io.toolsplus.atlassian.jwt.{
-  HttpRequestCanonicalizer,
-  Jwt,
-  JwtParser,
-  JwtReader
-}
+import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, Jwt, JwtParser, JwtReader}
+import play.api.Logger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,6 +18,8 @@ import scala.concurrent.Future
 class JwtAuthenticationProvider @Inject()(
     hostRepository: AtlassianHostRepository,
     addonConfiguration: AddonProperties) {
+
+  private val logger = Logger(classOf[JwtAuthenticationProvider])
 
   def authenticate(jwtCredentials: JwtCredentials)
     : EitherT[Future, JwtAuthenticationError, AtlassianHostUser] =
@@ -36,7 +31,10 @@ class JwtAuthenticationProvider @Inject()(
     } yield AtlassianHostUser(host, Option(verifiedToken.claims.getSubject))
 
   private def parseJwt(rawJwt: String): Either[JwtAuthenticationError, Jwt] =
-    JwtParser.parse(rawJwt).leftMap(e => InvalidJwtError(e.getMessage()))
+    JwtParser.parse(rawJwt).leftMap { e =>
+      logger.error(s"Parsing of JWT failed: $e")
+      InvalidJwtError(e.getMessage())
+    }
 
   private def extractClientKey(
       jwt: Jwt): Either[JwtAuthenticationError, String] = {
@@ -57,7 +55,9 @@ class JwtAuthenticationProvider @Inject()(
     EitherT[Future, JwtAuthenticationError, AtlassianHost](
       hostRepository.findByClientKey(clientKey).map {
         case Some(host) => Right(host)
-        case None => Left(UnknownJwtIssuerError(clientKey))
+        case None =>
+          logger.error(s"Could not find an installed host for the provided client key: $clientKey")
+          Left(UnknownJwtIssuerError(clientKey))
       }
     )
   }
@@ -70,7 +70,10 @@ class JwtAuthenticationProvider @Inject()(
 
     JwtReader(host.sharedSecret)
       .readAndVerify(jwtCredentials.rawJwt, qsh)
-      .leftMap(e => InvalidJwtError(e.getMessage))
+      .leftMap { e =>
+        logger.error(s"Reading and validating of JWT failed: $e")
+        InvalidJwtError(e.getMessage)
+      }
   }
 
   private def isSelfAuthenticationToken(

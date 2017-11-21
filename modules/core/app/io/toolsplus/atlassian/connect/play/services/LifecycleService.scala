@@ -64,7 +64,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     for {
       _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
       _ = logger.info(
-        s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
+        s"Saved installation for previously installed host ${newHost.baseUrl} (${newHost.clientKey})")
       host <- EitherT.right[Future, LifecycleError, AtlassianHost](
         hostRepository.save(newHost))
     } yield host
@@ -83,12 +83,14 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
   private def installUnauthenticated(installedEvent: InstalledEvent,
                                      newHost: AtlassianHost) = {
     existingHostByLifecycleEvent(installedEvent) flatMap {
-      case Some(_) => {
+      case Some(_) =>
         logger.error(
           s"Installation request was not properly authenticated, but we have already installed the add-on for host ${installedEvent.baseUrl}. Subsequent installation requests must include valid JWT. Returning 401.")
         Future.successful(Left(MissingJwtError))
-      }
-      case None => hostRepository.save(newHost).map(Right(_))
+      case None =>
+        logger.info(
+          s"Saved installation for new host ${newHost.baseUrl} (${newHost.clientKey})")
+        hostRepository.save(newHost).map(Right(_))
     }
   }
 
