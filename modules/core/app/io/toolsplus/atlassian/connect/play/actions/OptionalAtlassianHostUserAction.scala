@@ -58,6 +58,7 @@ class MaybeAtlassianHostUserActionRefiner @Inject()(
                 s"Received JWT authentication from unknown host (${e.asInstanceOf[UnknownJwtIssuerError].issuer}), but allowing anyway")
               Right(MaybeAtlassianHostUserRequest(None, request))
             } else {
+              logger.debug(s"Authentication of JWT signed request failed: $e")
               Left(Unauthorized(s"JWT validation failed: ${e.getMessage}"))
             }
         }
@@ -66,6 +67,14 @@ class MaybeAtlassianHostUserActionRefiner @Inject()(
     }
   }
 
+  /** Checks framework property allowReinstallMissingHost to decide whether to accept installations
+    * signed by an unknown host. This can be useful in development mode using an in-memory database
+    * but should never be enabled in production.
+    *
+    * @param request Request to check
+    * @param e Error that occurred during token authentication
+    * @return True if it's ok to ignore UnknownJwtIssuerError and install anyways, false otherwise.
+    */
   private def shouldIgnoreInvalidJwt[A](request: MaybeJwtRequest[A],
                                         e: JwtAuthenticationError): Boolean = {
     e match {
