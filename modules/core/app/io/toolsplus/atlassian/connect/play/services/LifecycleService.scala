@@ -65,7 +65,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
       _ = logger.info(
         s"Saved installation for previously installed host ${newHost.baseUrl} (${newHost.clientKey})")
-      host <- EitherT.right[Future, LifecycleError, AtlassianHost](
+      host <- EitherT.right[LifecycleError](
         hostRepository.save(newHost))
     } yield host
 
@@ -112,7 +112,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
         .toEitherT[Future]
       _ <- assertHostAuthorized(uninstalledEvent, hostUser).toEitherT[Future]
       maybeExistingHost <- EitherT
-        .right[Future, LifecycleError, Option[AtlassianHost]](
+        .right[LifecycleError](
           existingHostByLifecycleEvent(uninstalledEvent))
       result <- uninstall(uninstalledEvent, maybeExistingHost)
     } yield result
