@@ -12,7 +12,8 @@ object Dependencies {
     Library.scalaTestPlusPlay % "test",
     Library.scalaMock % "test",
     Library.scalaCheck % "test",
-    Library.atlassianJwtGenerators % "test"
+    Library.atlassianJwtGenerators % "test",
+    Library.akkaTestKit % "test"
   )
 }
 
@@ -25,6 +26,7 @@ object Version {
   val scalaTestPlusPlay = "3.1.2"
   val scalaMock = "3.6.0"
   val scalaCheck = "1.13.5"
+  val akkaTestKit = "2.5.9"
 }
 
 object Library {
@@ -39,4 +41,5 @@ object Library {
   val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
   val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % Version.scalaMock
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck
+  val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % Version.akkaTestKit
 }

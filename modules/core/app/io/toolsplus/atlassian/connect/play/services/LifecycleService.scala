@@ -3,11 +3,10 @@ package io.toolsplus.atlassian.connect.play.services
 import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
-import io.toolsplus.atlassian.connect.play.api.models.{
-  AtlassianHost,
-  AtlassianHostUser
-}
+import io.toolsplus.atlassian.connect.play.api.events.{AppInstalledEvent, AppUninstalledEvent}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser}
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
+import io.toolsplus.atlassian.connect.play.events.EventBus
 import io.toolsplus.atlassian.connect.play.models.Implicits._
 import io.toolsplus.atlassian.connect.play.models._
 import play.api.Logger
@@ -33,6 +32,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       _ <- assertLifecycleEventType(installedEvent, "installed")
         .toEitherT[Future]
       host <- install(installedEvent, maybeAtlassianHostUser)
+      _ = EventBus.publish(AppInstalledEvent(host))
     } yield host
 
   private def install(installedEvent: InstalledEvent,
@@ -115,6 +115,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
         .right[LifecycleError](
           existingHostByLifecycleEvent(uninstalledEvent))
       result <- uninstall(uninstalledEvent, maybeExistingHost)
+      _ = EventBus.publish(AppUninstalledEvent(hostUser.host))
     } yield result
 
   private def uninstall(uninstalledEvent: GenericEvent,
