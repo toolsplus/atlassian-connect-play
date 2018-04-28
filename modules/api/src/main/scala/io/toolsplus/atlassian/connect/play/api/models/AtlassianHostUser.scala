@@ -3,11 +3,21 @@ package io.toolsplus.atlassian.connect.play.api.models
 /**
   * Authentication principal for requests coming from an Atlassian host
   * application in which the add-on is installed.
-  *
-  * @param host    Host from which the request originated.
-  * @param userKey Key of the user on whose behalf a request was made.
   */
-case class AtlassianHostUser(host: AtlassianHost, userKey: Option[String])
+trait AtlassianHostUser {
+
+  /** Host from which the request originated.
+    *
+    * @return Host associated with this operation.
+    */
+  def host: AtlassianHost
+
+  /** Key of the user on whose behalf a request was made.
+    *
+    * @return Key of the user associated with this request.
+    */
+  def userKey: Option[String]
+}
 
 object AtlassianHostUser {
 

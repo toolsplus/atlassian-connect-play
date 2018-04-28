@@ -5,7 +5,7 @@ import cats.implicits._
 import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser, StandardAtlassianHostUser}
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
 import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, Jwt, JwtParser, JwtReader}
@@ -28,7 +28,7 @@ class JwtAuthenticationProvider @Inject()(
       clientKey <- extractClientKey(jwt).toEitherT[Future]
       host <- fetchAtlassianHost(clientKey)
       verifiedToken <- verifyJwt(jwtCredentials, host).toEitherT[Future]
-    } yield AtlassianHostUser(host, Option(verifiedToken.claims.getSubject))
+    } yield StandardAtlassianHostUser(host, Option(verifiedToken.claims.getSubject))
 
   private def parseJwt(rawJwt: String): Either[JwtAuthenticationError, Jwt] =
     JwtParser.parse(rawJwt).leftMap { e =>

@@ -1,8 +1,8 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
+import io.toolsplus.atlassian.connect.play.api.models.StandardAtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.AddonProperties
 import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
@@ -130,7 +130,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
               val result = await {
                 jwtAuthenticationProvider.authenticate(credentials).value
               }
-              result mustBe Right(AtlassianHostUser(host, Option(subject)))
+              result mustBe Right(StandardAtlassianHostUser(host, Option(subject)))
           }
         }
       }
@@ -217,7 +217,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {
             val result = await {
               jwtAuthenticationProvider.authenticate(credentials).value
             }
-            result mustBe Right(AtlassianHostUser(host, Option(subject)))
+            result mustBe Right(StandardAtlassianHostUser(host, Option(subject)))
           }
         }
       }

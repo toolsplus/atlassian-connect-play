@@ -1,6 +1,6 @@
 package io.toolsplus.atlassian.connect.play.models
 
-import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, StandardAtlassianHost}
 
 object Implicits {
 
@@ -15,7 +15,7 @@ object Implicits {
     */
   implicit def installedEventToAtlassianHost(
       implicit e: InstalledEvent): AtlassianHost =
-    AtlassianHost(
+    StandardAtlassianHost(
       e.clientKey,
       e.key,
       e.publicKey,
