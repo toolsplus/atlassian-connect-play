@@ -19,9 +19,9 @@ object Dependencies {
 
 object Version {
   val atlassianJwt = "0.1.4"
-  val cats = "1.0.1"
-  val circe = "0.9.1"
-  val playCirce = "2609.0"
+  val cats = "1.1.0"
+  val circe = "0.9.3"
+  val playCirce = "2609.1"
   val scalaUri = "0.4.16"
   val scalaTestPlusPlay = "3.1.2"
   val scalaMock = "3.6.0"
