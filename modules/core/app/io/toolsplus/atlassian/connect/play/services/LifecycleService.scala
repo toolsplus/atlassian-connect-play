@@ -122,16 +122,14 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
                         maybeExistingHost: Option[AtlassianHost])
     : EitherT[Future, LifecycleError, AtlassianHost] = {
     maybeExistingHost match {
-      case Some(host) => {
+      case Some(host) =>
         logger.info(
           s"Saved uninstallation for host ${host.baseUrl} (${host.clientKey})")
-        EitherT.right(hostRepository.save(host.copy(installed = false)))
-      }
-      case None => {
+        EitherT.right(hostRepository.save(host.uninstalled))
+      case None =>
         logger.error(
           s"Received authenticated uninstall request but no installation for host ${uninstalledEvent.baseUrl} has been found. Assume the add-on has been removed.")
         EitherT.left(Future.successful(MissingAtlassianHostError))
-      }
     }
   }
 
