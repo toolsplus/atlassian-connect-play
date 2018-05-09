@@ -17,6 +17,13 @@ trait AtlassianHostUser {
     * @return Key of the user associated with this request.
     */
   def userKey: Option[String]
+
+  /** Configures this host user to act as of this host user.
+    *
+    * @param userKey Key of the user to act as
+    * @return Same host user with user key set to given host user.
+    */
+  def actAs(userKey: String): AtlassianHostUser
 }
 
 object AtlassianHostUser {
@@ -29,11 +36,11 @@ object AtlassianHostUser {
       * Implicitly convert an instance of [[AtlassianHostUser]] to an
       * instance of [[AtlassianHost]].
       *
-      * @param h Atlassian host user instance.
+      * @param hostUser Atlassian host user instance.
       * @return Underlying Atlassian host instance.
       */
-    implicit def hostUserToHost(implicit h: AtlassianHostUser): AtlassianHost =
-      h.host
+    implicit def hostUserToHost(implicit hostUser: AtlassianHostUser): AtlassianHost =
+      hostUser.host
 
   }
 

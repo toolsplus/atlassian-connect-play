@@ -2,7 +2,7 @@ package io.toolsplus.atlassian.connect.play.actions
 
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
-import io.toolsplus.atlassian.connect.play.api.models.StandardAtlassianHostUser
+import io.toolsplus.atlassian.connect.play.api.models.DefaultAtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.auth.jwt.{
   CanonicalPlayHttpRequest,
@@ -10,7 +10,7 @@ import io.toolsplus.atlassian.connect.play.auth.jwt.{
   JwtCredentials
 }
 import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
+  PlayAddonProperties,
   AtlassianConnectProperties
 }
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
@@ -37,7 +37,7 @@ class OptionalAtlassianHostUserActionSpec
   val parser = app.injector.instanceOf[BodyParsers.Default]
 
   val hostRepository = mock[AtlassianHostRepository]
-  val addonProperties = new AddonProperties(config)
+  val addonProperties = new PlayAddonProperties(config)
   val connectProperties = new AtlassianConnectProperties(config)
   val jwtAuthenticationProvider =
     new JwtAuthenticationProvider(hostRepository, addonProperties)
@@ -94,7 +94,7 @@ class OptionalAtlassianHostUserActionSpec
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
               val jwtRequest = MaybeJwtRequest(Some(credentials), request)
-              val hostUser = StandardAtlassianHostUser(host, Option(subject))
+              val hostUser = DefaultAtlassianHostUser(host, Option(subject))
 
               (hostRepository
                 .findByClientKey(_: ClientKey)) expects host.clientKey returning Future

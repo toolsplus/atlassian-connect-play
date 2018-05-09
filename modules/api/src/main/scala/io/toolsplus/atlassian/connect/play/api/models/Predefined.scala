@@ -8,6 +8,6 @@ object Predefined {
   /** Type definition representing an Atlassian Connect add-on key.
     * It's just a String type but makes passing the plugin key implicitly possible.
     */
-  type AddonKey = String
+  type AppKey = String
 
 }

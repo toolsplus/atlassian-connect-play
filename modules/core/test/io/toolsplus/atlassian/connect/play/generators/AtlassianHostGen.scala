@@ -1,17 +1,17 @@
 package io.toolsplus.atlassian.connect.play.generators
 
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHostUser, StandardAtlassianHost, StandardAtlassianHostUser}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHostUser, DefaultAtlassianHost, DefaultAtlassianHostUser}
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
 trait AtlassianHostGen extends SecurityContextGen {
 
-  def atlassianHostGen: Gen[StandardAtlassianHost] =
+  def atlassianHostGen: Gen[DefaultAtlassianHost] =
     for {
       securityContext <- securityContextGen
       installed <- oneOf(true, false)
     } yield {
-      StandardAtlassianHost(
+      DefaultAtlassianHost(
         securityContext.clientKey,
         securityContext.key,
         securityContext.publicKey,
@@ -27,11 +27,11 @@ trait AtlassianHostGen extends SecurityContextGen {
       )
     }
 
-  def atlassianHostUserGen: Gen[StandardAtlassianHostUser] =
+  def atlassianHostUserGen: Gen[DefaultAtlassianHostUser] =
     for {
       atlassianHost <- atlassianHostGen
       userKey <- option(alphaStr)
-    } yield StandardAtlassianHostUser(atlassianHost, userKey)
+    } yield DefaultAtlassianHostUser(atlassianHost, userKey)
 
   def maybeAtlassianHostUserGen: Gen[Option[AtlassianHostUser]] =
     option(atlassianHostUserGen)

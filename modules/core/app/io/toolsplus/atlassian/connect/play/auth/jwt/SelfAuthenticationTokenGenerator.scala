@@ -4,11 +4,11 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 import com.google.inject.Inject
-import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
-import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
-  AtlassianConnectProperties
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AppProperties,
+  AtlassianHostUser
 }
+import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.jwt.JwtSigningError
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 
@@ -17,7 +17,7 @@ import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
   * add-on to itself.
   */
 class SelfAuthenticationTokenGenerator @Inject()(
-    addonProperties: AddonProperties,
+    addonProperties: AppProperties,
     connectProperties: AtlassianConnectProperties) {
 
   def createSelfAuthenticationToken(

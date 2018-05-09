@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.services
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, StandardAtlassianHost}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, DefaultAtlassianHost}
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.Implicits._
@@ -43,7 +43,7 @@ class LifecycleServiceSpec extends TestSpec {
             val installedEvent =
               someInstalledEvent.copy(clientKey = "clientKeyA")
             val hostUser = someHostUser.copy(
-              host = someHostUser.host.asInstanceOf[StandardAtlassianHost].copy(clientKey = "clientKeyA"))
+              host = someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = "clientKeyA"))
             val newHost = installedEventToAtlassianHost(installedEvent)
 
             (hostRepository
@@ -63,7 +63,7 @@ class LifecycleServiceSpec extends TestSpec {
             val clientKeyMismatchEvent =
               installedEvent.copy(clientKey = "clientKeyA")
             val clientKeyMismatchHostUser =
-              hostUser.copy(host = hostUser.host.asInstanceOf[StandardAtlassianHost].copy(clientKey = "clientKeyB"))
+              hostUser.copy(host = hostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = "clientKeyB"))
 
             val result = await {
               lifecycleService
@@ -124,7 +124,7 @@ class LifecycleServiceSpec extends TestSpec {
             val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
                                                      clientKey = clientKey)
             val installedHost =
-              someHostUser.host.asInstanceOf[StandardAtlassianHost].copy(clientKey = clientKey, installed = true)
+              someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = clientKey, installed = true)
             val uninstalledHost = installedHost.copy(installed = false)
             val hostUser = someHostUser.copy(host = installedHost)
 
@@ -150,7 +150,7 @@ class LifecycleServiceSpec extends TestSpec {
             val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
                                                      clientKey = clientKey)
             val installedHost =
-              someHostUser.host.asInstanceOf[StandardAtlassianHost].copy(clientKey = clientKey, installed = true)
+              someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = clientKey, installed = true)
             val hostUser = someHostUser.copy(host = installedHost)
 
             (hostRepository

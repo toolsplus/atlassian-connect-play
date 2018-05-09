@@ -6,11 +6,8 @@ import io.toolsplus.atlassian.connect.play.actions.{
   AtlassianHostUserAction,
   OptionalAtlassianHostUserAction
 }
-import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
-  GenericEvent,
-  InstalledEvent
-}
+import io.toolsplus.atlassian.connect.play.api.models.AppProperties
+import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import io.toolsplus.atlassian.connect.play.services._
 import play.api.libs.circe.Circe
 import play.api.mvc.InjectedController
@@ -25,7 +22,7 @@ class LifecycleController @Inject()(
     lifecycleService: LifecycleService,
     atlassianHostUserAction: AtlassianHostUserAction,
     optionalAtlassianHostUserAction: OptionalAtlassianHostUserAction,
-    addonProperties: AddonProperties,
+    addonProperties: AppProperties,
     implicit val executionContext: ExecutionContext)
     extends InjectedController
     with Circe {
