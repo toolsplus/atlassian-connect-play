@@ -10,7 +10,7 @@ import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator.{
   RelativeUriError
 }
 import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
+  PlayAddonProperties,
   AtlassianConnectProperties
 }
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
@@ -28,7 +28,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
 
   val config = app.configuration
 
-  val addonProperties = new AddonProperties(config)
+  val addonProperties = new PlayAddonProperties(config)
   val connectProperties = new AtlassianConnectProperties(config)
 
   val hostRepository = mock[AtlassianHostRepository]

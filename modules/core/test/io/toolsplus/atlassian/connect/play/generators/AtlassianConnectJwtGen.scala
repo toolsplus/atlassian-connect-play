@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.generators
 
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
-import io.toolsplus.atlassian.connect.play.api.models.Predefined.AddonKey
+import io.toolsplus.atlassian.connect.play.api.models.Predefined.AppKey
 import io.toolsplus.atlassian.connect.play.auth.jwt.{
   JwtCredentials,
   SelfAuthenticationTokenGenerator
@@ -21,7 +21,7 @@ trait AtlassianConnectJwtGen extends JwtGen with NimbusGen {
     signedJwtStringGen(host.sharedSecret, customClaims)
   }
 
-  def selfAuthenticatedJwtCredentialsGen(addonKey: AddonKey,
+  def selfAuthenticatedJwtCredentialsGen(addonKey: AppKey,
                                          host: AtlassianHost,
                                          customClaims: Seq[(String, Any)] =
                                            Seq.empty): Gen[JwtCredentials] = {

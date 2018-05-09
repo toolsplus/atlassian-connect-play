@@ -3,7 +3,7 @@ package io.toolsplus.atlassian.connect.play.helper.jwt
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.auth.jwt.SelfAuthenticationTokenGenerator
 import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
+  PlayAddonProperties,
   AtlassianConnectProperties
 }
 import org.scalatest.EitherValues
@@ -16,7 +16,7 @@ class JwtResponseHelperSpec
 
   val config = app.configuration
 
-  val addonProperties = new AddonProperties(config)
+  val addonProperties = new PlayAddonProperties(config)
   val connectProperties = new AtlassianConnectProperties(config)
 
   val tokenGenerator =

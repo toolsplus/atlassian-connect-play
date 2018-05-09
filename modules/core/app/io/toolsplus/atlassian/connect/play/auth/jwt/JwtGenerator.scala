@@ -2,26 +2,26 @@ package io.toolsplus.atlassian.connect.play.auth.jwt
 
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
 import cats.syntax.either._
 import com.netaporter.uri.Uri
-import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
-import io.toolsplus.atlassian.connect.play.models.{
-  AddonProperties,
-  AtlassianConnectProperties
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AppProperties,
+  AtlassianHost
 }
+import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
+import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
 import io.toolsplus.atlassian.jwt.HttpRequestCanonicalizer
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import javax.inject.Inject
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class JwtGenerator @Inject()(
-    addonProperties: AddonProperties,
+    addonProperties: AppProperties,
     atlassianConnectProperties: AtlassianConnectProperties,
     hostUriResolver: AtlassianHostUriResolver) {
 
@@ -34,15 +34,14 @@ class JwtGenerator @Inject()(
       case Right(_) =>
         hostUriResolver.hostFromRequestUrl(uri).map {
           case Some(host) => internalCreateJwtToken(httpMethod, uri, host)
-          case None => Left(AtlassianHostNotFoundError(uri))
+          case None       => Left(AtlassianHostNotFoundError(uri))
         }
     }
   }
 
-  def createJwtToken(
-      httpMethod: String,
-      uri: Uri,
-      host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
+  def createJwtToken(httpMethod: String,
+                     uri: Uri,
+                     host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
     assertUriAbsolute(uri)
       .flatMap(assertRequestToHost(_, host))
       .flatMap(internalCreateJwtToken(httpMethod, _, host))
@@ -56,8 +55,8 @@ class JwtGenerator @Inject()(
       CanonicalUriHttpRequest(httpMethod, uri, host.baseUrl)
     logger.debug(
       s"Generating JWT with canonical request: $canonicalHttpRequest")
-    val queryHash = HttpRequestCanonicalizer.computeCanonicalRequestHash(
-      canonicalHttpRequest)
+    val queryHash =
+      HttpRequestCanonicalizer.computeCanonicalRequestHash(canonicalHttpRequest)
 
     val expireAfter = Duration.of(atlassianConnectProperties.jwtExpirationTime,
                                   ChronoUnit.SECONDS)
