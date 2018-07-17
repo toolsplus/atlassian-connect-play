@@ -12,7 +12,7 @@ import io.toolsplus.atlassian.connect.play.api.models.{
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
-import io.toolsplus.atlassian.jwt.HttpRequestCanonicalizer
+import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, JwtBuilder}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import javax.inject.Inject
 import play.api.Logger

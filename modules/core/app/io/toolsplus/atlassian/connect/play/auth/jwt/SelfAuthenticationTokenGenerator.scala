@@ -9,7 +9,7 @@ import io.toolsplus.atlassian.connect.play.api.models.{
   AtlassianHostUser
 }
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
-import io.toolsplus.atlassian.jwt.JwtSigningError
+import io.toolsplus.atlassian.jwt.{JwtBuilder, JwtSigningError}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 
 /**
