@@ -16,6 +16,8 @@ class PlayAddonProperties @Inject()(config: Configuration) extends AppProperties
 
   override lazy val key: AppKey = addonConfig.get[String]("key")
 
+  override lazy val secret: AppKey = addonConfig.get[String]("secret")
+
   override lazy val name: String = addonConfig.get[String]("name")
 
   override lazy val baseUrl: String = addonConfig.get[String]("baseUrl")
