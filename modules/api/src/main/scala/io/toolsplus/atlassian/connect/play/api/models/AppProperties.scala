@@ -9,6 +9,9 @@ trait AppProperties {
   /** Key of this app. */
   def key: AppKey
 
+  /** Secret of this app. */
+  def secret: String
+
   /** Name of this app. */
   def name: String
 
