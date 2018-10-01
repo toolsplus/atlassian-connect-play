@@ -16,6 +16,9 @@ import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
   * Generator of JSON Web Tokens for authenticating requests from the
   * add-on to itself.
   */
+@deprecated(
+  "SelfAuthenticationTokens are deprecated. Use AP.context.getToken() to generate tokens and sign requests from client side code.",
+  "0.1.9")
 class SelfAuthenticationTokenGenerator @Inject()(
     addonProperties: AppProperties,
     connectProperties: AtlassianConnectProperties) {

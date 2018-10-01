@@ -17,6 +17,9 @@ class AtlassianConnectProperties @Inject()(config: Configuration) {
   /**
     * Expiration time for self-authentication tokens in seconds.
     */
+  @deprecated(
+    "SelfAuthenticationTokens are deprecated. Use AP.context.getToken() to generate tokens and sign requests from client side code.",
+    "0.1.9")
   lazy val selfAuthenticationExpirationTime: Int =
     atlassianConnectConfig.get[Int]("selfAuthenticationExpirationTime")
 
