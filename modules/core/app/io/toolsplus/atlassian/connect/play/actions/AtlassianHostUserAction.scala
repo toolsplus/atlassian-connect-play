@@ -55,7 +55,7 @@ class AtlassianHostUserAction @Inject()(
     extends ActionBuilder[AtlassianHostUserRequest, AnyContent] {
   override def invokeBlock[A](
       request: Request[A],
-      block: (AtlassianHostUserRequest[A]) => Future[Result]) = {
+      block: AtlassianHostUserRequest[A] => Future[Result]) = {
     (jwtActionRefiner andThen atlassianHostUserActionRefiner)
       .invokeBlock(request, block)
   }

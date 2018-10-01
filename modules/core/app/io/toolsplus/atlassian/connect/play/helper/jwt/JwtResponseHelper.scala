@@ -10,6 +10,9 @@ import play.api.mvc.Results._
   *
   * Requires a [[SelfAuthenticationTokenGenerator]] in context.
   */
+@deprecated(
+  "SelfAuthenticationTokens are deprecated. Use AP.context.getToken() to generate tokens and sign requests from client side code.",
+  "0.1.9")
 trait JwtResponseHelper {
 
   def selfAuthenticationTokenGenerator: SelfAuthenticationTokenGenerator
@@ -28,11 +31,10 @@ trait JwtResponseHelper {
     * @return Either the signed result or a JWT signing error
     */
   def withJwtResponseHeader(result: Result)(
-    implicit hostUser: AtlassianHostUser): Either[JwtSigningError, Result] = {
+      implicit hostUser: AtlassianHostUser): Either[JwtSigningError, Result] = {
     selfAuthenticationTokenGenerator
       .createSelfAuthenticationToken(hostUser)
-      .map { token =>
-        result.withHeaders(jwtResponseHeaderName -> s"JWT $token")
+      .map { token => result.withHeaders(jwtResponseHeaderName -> s"JWT $token")
       }
   }
 
