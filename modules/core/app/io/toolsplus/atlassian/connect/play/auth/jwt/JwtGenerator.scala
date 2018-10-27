@@ -5,10 +5,7 @@ import java.time.temporal.ChronoUnit
 
 import cats.syntax.either._
 import com.netaporter.uri.Uri
-import io.toolsplus.atlassian.connect.play.api.models.{
-  AppProperties,
-  AtlassianHost
-}
+import io.toolsplus.atlassian.connect.play.api.models.{AppProperties, AtlassianHost}
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
@@ -41,11 +38,12 @@ class JwtGenerator @Inject()(
 
   def createJwtToken(httpMethod: String,
                      uri: Uri,
-                     host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
-    assertUriAbsolute(uri)
-      .flatMap(assertRequestToHost(_, host))
-      .flatMap(internalCreateJwtToken(httpMethod, _, host))
-  }
+                     host: AtlassianHost): Either[JwtGeneratorError, RawJwt] =
+    for {
+      absoluteUri <- assertUriAbsolute(uri)
+      uriToHost <- assertRequestToHost(absoluteUri, host)
+      jwt <- internalCreateJwtToken(httpMethod, uriToHost, host)
+    } yield jwt
 
   private def internalCreateJwtToken(
       httpMethod: String,
@@ -61,12 +59,19 @@ class JwtGenerator @Inject()(
     val expireAfter = Duration.of(atlassianConnectProperties.jwtExpirationTime,
                                   ChronoUnit.SECONDS)
 
-    new JwtBuilder(expireAfter)
-      .withIssuer(addonProperties.key)
-      .withQueryHash(queryHash)
-      .build(host.sharedSecret)
-      .leftMap(e => JwtSigningError(e.message, e.underlying))
+    for {
+      sharedSecret <- assertSecretKeyLessThan256Bits(host.sharedSecret)
+      jwt <- new JwtBuilder(expireAfter)
+        .withIssuer(addonProperties.key)
+        .withQueryHash(queryHash)
+        .build(sharedSecret)
+        .leftMap(e => JwtSigningError(e.message, e.underlying))
+    } yield jwt
   }
+
+  private def assertSecretKeyLessThan256Bits(secretKey: String): Either[JwtGeneratorError, String] =
+    if (secretKey.getBytes.length < (256 / 8)) Left(InvalidSecretKey)
+    else Right(secretKey)
 
   private def assertUriAbsolute(uri: Uri): Either[JwtGeneratorError, Uri] = {
     if (uri.toURI.isAbsolute) Right(uri) else Left(RelativeUriError)
@@ -103,6 +108,10 @@ object JwtGenerator {
       extends JwtGeneratorError {
     override val message: String =
       s"No Atlassian host found for the given URI $uri"
+  }
+
+  final case object InvalidSecretKey extends JwtGeneratorError {
+    override def message = "Secret key must be more than 256 bits"
   }
 
 }
