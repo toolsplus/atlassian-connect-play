@@ -3,16 +3,8 @@ package io.toolsplus.atlassian.connect.play.auth.jwt
 import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator.{
-  AtlassianHostNotFoundError,
-  BaseUrlMismatchError,
-  JwtGeneratorError,
-  RelativeUriError
-}
-import io.toolsplus.atlassian.connect.play.models.{
-  PlayAddonProperties,
-  AtlassianConnectProperties
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
+import io.toolsplus.atlassian.connect.play.models.{AtlassianConnectProperties, PlayAddonProperties}
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
 import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 import io.toolsplus.atlassian.jwt._
@@ -165,6 +157,15 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
             }
             result mustBe Left(AtlassianHostNotFoundError(absoluteUri))
         }
+      }
+
+      "fail if secret key is less than 256 bits" in forAll(methodGen, pathGen, atlassianHostGen) {
+        (method, relativePath, randomHost) =>
+          val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
+          val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
+          val result = jwtGenerator.createJwtToken(method, absoluteUri, hostWithInvalidKey)
+
+          result mustBe Left(InvalidSecretKey)
       }
 
     }
