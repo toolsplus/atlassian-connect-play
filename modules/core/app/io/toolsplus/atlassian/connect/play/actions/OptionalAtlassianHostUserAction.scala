@@ -124,7 +124,7 @@ class OptionalAtlassianHostUserAction @Inject()(
 
     /**
       * Implicitly convert an instance of [[MaybeAtlassianHostUserRequest]]
-      * to an instance of [[Option[AtlassianHostUser]]].
+      * to an instance of Option[AtlassianHostUser].
       *
       * @param r Maybe Atlassian host user request instance.
       * @return Optional Atlassian host user instance extracted from request.

@@ -10,7 +10,7 @@ import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 import scala.concurrent.Future
 
 /**
-  * A helper class for resolving URLs relative to the base URL of an [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]].
+  * A helper class for resolving URLs relative to the base URL of an AtlassianHost.
   */
 class AtlassianHostUriResolver @Inject()(
     hostRepository: AtlassianHostRepository) {

@@ -14,11 +14,20 @@ trait AtlassianHostUser {
 
   /** Key of the user on whose behalf a request was made.
     *
+    * @deprecated as of 0.2.0 with migration to Atlassian Account ID
     * @return Key of the user associated with this request.
     */
+  @deprecated
   def userKey: Option[String]
 
-  /** Configures this host user to act as of this host user.
+  /**
+    * Atlassian Account ID of the user on whose behalf a request was made.
+    *
+    * @return Atlassian Account ID
+    */
+  def userAccountId: Option[String]
+
+  /** Configures this host user to act as the given user.
     *
     * @param userKey Key of the user to act as
     * @return Same host user with user key set to given host user.
@@ -39,7 +48,8 @@ object AtlassianHostUser {
       * @param hostUser Atlassian host user instance.
       * @return Underlying Atlassian host instance.
       */
-    implicit def hostUserToHost(implicit hostUser: AtlassianHostUser): AtlassianHost =
+    implicit def hostUserToHost(
+        implicit hostUser: AtlassianHostUser): AtlassianHost =
       hostUser.host
 
   }

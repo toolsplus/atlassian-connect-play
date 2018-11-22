@@ -66,7 +66,7 @@ class AtlassianHostUserAction @Inject()(
 
     /**
       * Implicitly convert an instance of [[AtlassianHostUserRequest]] to an
-      * instance of [[AtlassianHostUser]].
+      * instance of AtlassianHostUser.
       *
       * @param r Atlassian host user request instance.
       * @return Atlassian host user instance extracted from request.

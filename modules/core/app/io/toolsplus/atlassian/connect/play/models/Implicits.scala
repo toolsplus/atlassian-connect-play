@@ -8,7 +8,7 @@ object Implicits {
 
   /**
     * Implicitly convert an instance of [[LifecycleEvent]] to an instance of
-    * [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]].
+    * AtlassianHost.
     *
     * @param e Lifecycle event instance.
     * @return Atlassian host instance extracted from lifecycle event.

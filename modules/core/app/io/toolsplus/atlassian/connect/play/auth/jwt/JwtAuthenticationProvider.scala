@@ -4,7 +4,8 @@ import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
-import io.toolsplus.atlassian.connect.play.api.models.Predefined.AppKey
+import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.toolsplus.atlassian.connect.play.api.models.{
   AppProperties,
   AtlassianHost,
@@ -20,7 +21,6 @@ import io.toolsplus.atlassian.jwt.{
 }
 import play.api.Logger
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -38,7 +38,51 @@ class JwtAuthenticationProvider @Inject()(
       host <- fetchAtlassianHost(clientKey)
       verifiedToken <- verifyJwt(jwtCredentials, host).toEitherT[Future]
     } yield
-      DefaultAtlassianHostUser(host, Option(verifiedToken.claims.getSubject))
+      hostUserFromContextClaim(host, verifiedToken.claims)
+        .getOrElse(hostUserFromSubjectClaim(host, verifiedToken.claims))
+
+  /**
+    * Tries to create host user from context claim. Note that this claim
+    * will be removed by Atlassian effective from 29 March, 2019.
+    *
+    * After opting in to GDPR APIs or after March 29 we can safely remove
+    * this method because there won't be any context claim in JWTs anymore.
+    *
+    * @param host Atlassian host user involved in this request
+    * @param verifiedClaims Verified JWT claims for this request
+    * @return Atlassian host user if one could be parsed from context claim.
+    */
+  private def hostUserFromContextClaim(
+      host: AtlassianHost,
+      verifiedClaims: JWTClaimsSet): Option[AtlassianHostUser] = {
+    case class JwtUser(accountId: Option[String], userKey: Option[String])
+    case class JwtContextClaim(user: JwtUser)
+    Option(verifiedClaims.getJSONObjectClaim("context"))
+      .map(_.toJSONString)
+      .flatMap(decode[JwtContextClaim](_).toOption)
+      .map(
+        context =>
+          DefaultAtlassianHostUser(host,
+                                   context.user.userKey,
+                                   context.user.accountId))
+  }
+
+  /**
+    * Creates Atlassian host user from subject claim. The resulting host user will
+    * only have a userAccountId but no more userKey.
+    *
+    * This mechanism kicks in at the latest after March 29, 2019 or before if GDPR APIs have been enabled.
+    *
+    * @param host Atlassian host user involved in this request
+    * @param verifiedClaims Verified JWT claims for this request
+    * @return Atlassian host user created from subject claim.
+    */
+  private def hostUserFromSubjectClaim(
+      host: AtlassianHost,
+      verifiedClaims: JWTClaimsSet
+  ): AtlassianHostUser = {
+    DefaultAtlassianHostUser(host, None, Option(verifiedClaims.getSubject))
+  }
 
   private def parseJwt(rawJwt: String): Either[JwtAuthenticationError, Jwt] =
     JwtParser.parse(rawJwt).leftMap { e =>
@@ -48,15 +92,12 @@ class JwtAuthenticationProvider @Inject()(
 
   private def extractClientKey(
       jwt: Jwt): Either[JwtAuthenticationError, String] = {
-    val unverifiedClaims = jwt.claims
-    val addonKey = addonConfiguration.key
-    if (isSelfAuthenticationToken(addonKey, unverifiedClaims)) {
-      validateSelfAuthenticationTokenAudience(addonKey, unverifiedClaims)
-        .flatMap { _ =>
-          hostClientKeyFromSelfAuthenticationToken(unverifiedClaims)
-        }
-    } else {
-      hostClientKeyFromAtlassianToken(Option(unverifiedClaims.getIssuer))
+    Option(jwt.claims.getIssuer) match {
+      case Some(clientKeyClaim) => Right(clientKeyClaim)
+      case None =>
+        Left(
+          JwtBadCredentialsError("Missing client key claim for Atlassian token")
+        )
     }
   }
 
@@ -86,67 +127,4 @@ class JwtAuthenticationProvider @Inject()(
         InvalidJwtError(e.getMessage)
       }
   }
-
-  private def isSelfAuthenticationToken(
-      addonKey: AppKey,
-      unverifiedClaims: JWTClaimsSet): Boolean =
-    addonKey == unverifiedClaims.getIssuer
-
-  private def validateSelfAuthenticationTokenAudience(
-      addonKey: AppKey,
-      unverifiedClaims: JWTClaimsSet)
-    : Either[JwtAuthenticationError, List[String]] = {
-    unverifiedClaims.getAudience.asScala.toList match {
-      case audience @ maybeAddonKey :: Nil =>
-        if (maybeAddonKey == addonKey) Right(audience)
-        else
-          Left(JwtBadCredentialsError(
-            s"Invalid audience ($maybeAddonKey) for self-authentication token"))
-      case audience @ List(_) =>
-        Left(JwtBadCredentialsError(
-          s"Invalid audience (${audience.mkString(",")}) for self-authentication token"))
-      case Nil =>
-        Left(
-          JwtBadCredentialsError(
-            "Missing audience for self-authentication token"))
-    }
-  }
-
-  private def hostClientKeyFromSelfAuthenticationToken(
-      unverifiedClaims: JWTClaimsSet)
-    : Either[JwtAuthenticationError, String] = {
-    val maybeClientKeyClaim = Option(
-      unverifiedClaims
-        .getClaim(SelfAuthenticationTokenGenerator.HostClientKeyClaim)
-        .asInstanceOf[String]
-    )
-    validateSelfAuthenticationTokenClientKey(maybeClientKeyClaim)
-  }
-
-  private def validateSelfAuthenticationTokenClientKey(
-      maybeClientKeyClaim: Option[String])
-    : Either[JwtAuthenticationError, String] = {
-    maybeClientKeyClaim match {
-      case Some(clientKeyClaim) => Right(clientKeyClaim)
-      case None =>
-        Left(
-          JwtBadCredentialsError(
-            "Missing client key claim for self-authentication token"
-          )
-        )
-    }
-  }
-
-  private def hostClientKeyFromAtlassianToken(
-      maybeClientKeyClaim: Option[String])
-    : Either[JwtAuthenticationError, String] = {
-    maybeClientKeyClaim match {
-      case Some(clientKeyClaim) => Right(clientKeyClaim)
-      case None =>
-        Left(
-          JwtBadCredentialsError("Missing client key claim for Atlassian token")
-        )
-    }
-  }
-
 }

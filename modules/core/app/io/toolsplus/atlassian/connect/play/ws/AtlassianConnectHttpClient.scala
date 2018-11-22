@@ -10,18 +10,18 @@ import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
 import play.api.libs.ws.{WSClient, WSRequest, WSSignatureCalculator}
 
 /**
-  * A helper class for obtaining pre-configured [[WSRequest]]s to make authenticated requests to Atlassian hosts.
+  * A helper class for obtaining pre-configured WSRequests to make authenticated requests to Atlassian hosts.
   *
   * ==JWT==
   *
   * To make requests using JWT, the add-on must specify the authentication type `jwt` in its add-on descriptor.
   *
-  * To obtain a [[WSRequest]] using JWT authentication, use [[authenticatedAsAddon()]]:
+  * To obtain a WSRequest using JWT authentication, use authenticatedAsAddon():
   * {{{
   * class MyRestClient @Inject()(httpClient: AtlassianConnectHttpClient) {
   *
   *   def fetchIssue(issueKey: String): Future[WSResponse] = {
-  *      httpClient.authenticatedAsAddon(s"/rest/api/2/issue/$issueKey").get
+  *      httpClient.authenticatedAsAddon(s"/rest/api/2/issue/{issueKey}").get
   *   }
   * }
   * }}}

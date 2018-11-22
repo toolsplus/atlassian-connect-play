@@ -1,10 +1,9 @@
 package io.toolsplus.atlassian.connect.play.api.models
 
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
-import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 
 /** An Atlassian host in which the add-on is or has been installed. Hosts are
-  * stored in [[AtlassianHostRepository]].
+  * stored in AtlassianHostRepository.
   *
   * During processing of a request from an Atlassian host, the details of the
   * host and of the user at the browser can be obtained from the [[AtlassianHostUser]].

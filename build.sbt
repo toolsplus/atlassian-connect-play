@@ -2,7 +2,7 @@ import ReleaseTransformations._
 
 val commonSettings = Seq(
   organization := "io.toolsplus",
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   resolvers ++= Seq(
     "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",
     "Bintary JCenter" at "http://jcenter.bintray.com"
@@ -40,7 +40,7 @@ lazy val publishSettings = Seq(
   developers := List(
     Developer("tbinna",
               "Tobias Binna",
-              "tobias.binna@toolsplus.ch",
+              "tobias.binna@toolsplus.io",
               url("https://twitter.com/tbinna"))
   )
 )
