@@ -94,7 +94,8 @@ class OptionalAtlassianHostUserActionSpec
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
               val jwtRequest = MaybeJwtRequest(Some(credentials), request)
-              val hostUser = DefaultAtlassianHostUser(host, Option(subject))
+              val hostUser =
+                DefaultAtlassianHostUser(host, None, Option(subject))
 
               (hostRepository
                 .findByClientKey(_: ClientKey)) expects host.clientKey returning Future

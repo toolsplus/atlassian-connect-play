@@ -24,7 +24,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     * @param installedEvent         Lifecycle event holding the security context
     *                               provided by Atlassian product.
     * @param maybeAtlassianHostUser Atlassian host user if contained in the request.
-    * @return Installed [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]] instance.*/
+    * @return Installed AtlassianHost instance.*/
   def installed(installedEvent: InstalledEvent)(
       implicit maybeAtlassianHostUser: Option[AtlassianHostUser])
     : EitherT[Future, LifecycleError, AtlassianHost] =
@@ -103,7 +103,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     *
     * @param uninstalledEvent Lifecycle event payload.
     * @param hostUser         Atlassian host user that made the request.
-    * @return Either [[LifecycleError]] or [[AtlassianHost]].*/
+    * @return Either [[LifecycleError]] or AtlassianHost.*/
   def uninstalled(uninstalledEvent: GenericEvent)(
       implicit hostUser: AtlassianHostUser)
     : EitherT[Future, LifecycleError, AtlassianHost] =
