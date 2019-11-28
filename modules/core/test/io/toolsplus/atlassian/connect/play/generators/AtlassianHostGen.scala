@@ -8,12 +8,15 @@ import io.toolsplus.atlassian.connect.play.api.models.{
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
-trait AtlassianHostGen extends SecurityContextGen {
+trait AtlassianHostGen extends SecurityContextGen with UrlGen {
 
   def atlassianHostGen: Gen[DefaultAtlassianHost] =
     for {
       securityContext <- securityContextGen
+      displayUrl <- option(urlGen)
+      displayUrlServicedeskHelpCenter <- option(urlGen)
       installed <- oneOf(true, false)
+
     } yield {
       DefaultAtlassianHost(
         securityContext.clientKey,
@@ -24,6 +27,8 @@ trait AtlassianHostGen extends SecurityContextGen {
         securityContext.serverVersion,
         securityContext.pluginsVersion,
         securityContext.baseUrl,
+        displayUrl,
+        displayUrlServicedeskHelpCenter,
         securityContext.productType,
         securityContext.description,
         securityContext.serviceEntitlementNumber,

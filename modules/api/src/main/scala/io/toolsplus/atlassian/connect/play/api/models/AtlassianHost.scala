@@ -68,6 +68,22 @@ trait AtlassianHost {
     */
   def baseUrl: String
 
+  /** URL through which users will access the product. This is either the
+    * custom domain set by an admin, or if not present baseUrl should be
+    * used.
+    *
+    * @return Custom domain URL for this product instance.
+    */
+  def displayUrl: Option[String]
+
+  /** URL through which users will access the Jira Service Desk Help Center. This is either the
+    * custom domain set by an admin, or if not present baseUrl should be
+    * used.
+    *
+    * @return Custom domain URL for the Jira Service Desk Help Center.
+    */
+  def displayUrlServicedeskHelpCenter: Option[String]
+
   /** Identifies the category of Atlassian
     * product, e.g. jira or confluence.
     *

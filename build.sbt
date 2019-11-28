@@ -4,8 +4,8 @@ val commonSettings = Seq(
   organization := "io.toolsplus",
   scalaVersion := "2.12.8",
   resolvers ++= Seq(
-    "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",
-    "Bintary JCenter" at "http://jcenter.bintray.com"
+    "Typesafe repository releases" at "https://repo.typesafe.com/typesafe/releases/",
+    "Bintary JCenter" at "https://jcenter.bintray.com"
   )
 )
 

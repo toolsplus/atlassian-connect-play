@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 class LifecycleServiceSpec extends TestSpec {
 
-  val hostRepository = mock[AtlassianHostRepository]
+  val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
 
   val lifecycleService = new LifecycleService(hostRepository)
 

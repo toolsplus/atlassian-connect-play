@@ -24,6 +24,8 @@ object Implicits {
       e.serverVersion,
       e.pluginsVersion,
       e.baseUrl,
+      e.displayUrl,
+      e.displayUrlServicedeskHelpCenter,
       e.productType,
       e.description,
       e.serviceEntitlementNumber,

@@ -7,11 +7,13 @@ import io.toolsplus.atlassian.connect.play.models.{
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
-trait LifecycleEventGen extends SecurityContextGen {
+trait LifecycleEventGen extends SecurityContextGen with UrlGen {
 
   def installedEventGen: Gen[InstalledEvent] =
     for {
       eventType <- const("installed")
+      displayUrl <- option(urlGen)
+      displayUrlServicedeskHelpCenter <- option(urlGen)
       securityContext <- securityContextGen
     } yield
       InstalledEvent(
@@ -24,6 +26,8 @@ trait LifecycleEventGen extends SecurityContextGen {
         securityContext.serverVersion,
         securityContext.pluginsVersion,
         securityContext.baseUrl,
+        displayUrl,
+        displayUrlServicedeskHelpCenter,
         securityContext.productType,
         securityContext.description,
         securityContext.serviceEntitlementNumber

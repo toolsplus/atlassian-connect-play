@@ -12,7 +12,7 @@ It serves as a starter for building Atlassian Connect add-ons for JIRA and Confl
 
 ## Quick start
 
-atlassian-connect-play is published to Maven Central for Scala 2.12 and Play 2.6.x, 
+atlassian-connect-play is published to Maven Central for Scala 2.12 and Play 2.7.x, 
 so you can just add the following to your build:
 
     libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "x.x.x"
@@ -26,7 +26,7 @@ it into an Atlassian Connect add-on.
 
 ### Creating a project from the seed project
 
-The easiest way to get started is by cloning the [Atlassian Connect Play Seed](atlassian-connect-play-seed) 
+The easiest way to get started is by cloning the [Atlassian Connect Play Slick Seed](atlassian-connect-play-seed) 
 project.
 
 ## Responding to requests
@@ -118,5 +118,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[atlassian-connect-play-seed]: https://github.com/toolsplus/atlassian-connect-play-seed
+[atlassian-connect-play-seed]: https://github.com/toolsplus/atlassian-connect-play-slick-seed.g8
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
