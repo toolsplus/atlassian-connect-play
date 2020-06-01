@@ -1,16 +1,16 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
+import java.net.URI
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 import cats.syntax.either._
-import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.api.models.{AppProperties, AtlassianHost}
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
-import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, JwtBuilder}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, JwtBuilder}
 import javax.inject.Inject
 import play.api.Logger
 
@@ -25,7 +25,7 @@ class JwtGenerator @Inject()(
   private val logger = Logger(classOf[JwtGenerator])
 
   def createJwtToken(httpMethod: String,
-                     uri: Uri): Future[Either[JwtGeneratorError, RawJwt]] = {
+                     uri: URI): Future[Either[JwtGeneratorError, RawJwt]] = {
     assertUriAbsolute(uri) match {
       case Left(e) => Future.successful(Left(e))
       case Right(_) =>
@@ -37,7 +37,7 @@ class JwtGenerator @Inject()(
   }
 
   def createJwtToken(httpMethod: String,
-                     uri: Uri,
+                     uri: URI,
                      host: AtlassianHost): Either[JwtGeneratorError, RawJwt] =
     for {
       absoluteUri <- assertUriAbsolute(uri)
@@ -47,7 +47,7 @@ class JwtGenerator @Inject()(
 
   private def internalCreateJwtToken(
       httpMethod: String,
-      uri: Uri,
+      uri: URI,
       host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
     val canonicalHttpRequest =
       CanonicalUriHttpRequest(httpMethod, uri, host.baseUrl)
@@ -73,13 +73,13 @@ class JwtGenerator @Inject()(
     if (secretKey.getBytes.length < (256 / 8)) Left(InvalidSecretKey)
     else Right(secretKey)
 
-  private def assertUriAbsolute(uri: Uri): Either[JwtGeneratorError, Uri] = {
-    if (uri.toURI.isAbsolute) Right(uri) else Left(RelativeUriError)
+  private def assertUriAbsolute(uri: URI): Either[JwtGeneratorError, URI] = {
+    if (uri.isAbsolute) Right(uri) else Left(RelativeUriError)
   }
 
   private def assertRequestToHost(
-      uri: Uri,
-      host: AtlassianHost): Either[JwtGeneratorError, Uri] = {
+      uri: URI,
+      host: AtlassianHost): Either[JwtGeneratorError, URI] = {
     if (AtlassianHostUriResolver.isRequestToHost(uri, host)) Right(uri)
     else Left(BaseUrlMismatchError)
   }
@@ -104,7 +104,7 @@ object JwtGenerator {
   final case class JwtSigningError(message: String, cause: Throwable)
       extends JwtGeneratorError
 
-  final case class AtlassianHostNotFoundError(uri: Uri)
+  final case class AtlassianHostNotFoundError(uri: URI)
       extends JwtGeneratorError {
     override val message: String =
       s"No Atlassian host found for the given URI $uri"

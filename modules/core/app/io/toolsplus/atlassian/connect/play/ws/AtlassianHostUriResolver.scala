@@ -1,13 +1,13 @@
 package io.toolsplus.atlassian.connect.play.ws
 
-import javax.inject.Inject
+import java.net.URI
 
-import com.netaporter.uri.Uri
+import javax.inject.Inject
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 /**
   * A helper class for resolving URLs relative to the base URL of an AtlassianHost.
@@ -15,21 +15,29 @@ import scala.concurrent.Future
 class AtlassianHostUriResolver @Inject()(
     hostRepository: AtlassianHostRepository) {
 
-  def hostFromRequestUrl(uri: Uri): Future[Option[AtlassianHost]] = {
+  def hostFromRequestUrl(uri: URI): Future[Option[AtlassianHost]] = {
     if (uri.isAbsolute) {
-      uri.baseUrl match {
+      AtlassianHostUriResolver.baseUrl(uri) match {
         case Some(url) => hostRepository.findByBaseUrl(url)
-        case None => Future.successful(None)
+        case None      => Future.successful(None)
       }
     } else Future.successful(None)
   }
-
 }
 
 object AtlassianHostUriResolver {
 
-  def isRequestToHost(requestUri: Uri, host: AtlassianHost) = {
-    val hostBaseUri = Uri.parse(host.baseUrl)
-    !hostBaseUri.toURI.relativize(requestUri.toURI).isAbsolute
+  def baseUrl(uri: URI): Option[String] = {
+    Try {
+      new URI(uri.getScheme, uri.getAuthority, null, null, null).toString
+    } match {
+      case Success(url) => if (url.isEmpty) None else Some(url)
+      case Failure(_)   => None
+    }
+  }
+
+  def isRequestToHost(requestUri: URI, host: AtlassianHost): Boolean = {
+    val hostBaseUri = URI.create(host.baseUrl)
+    !hostBaseUri.relativize(requestUri).isAbsolute
   }
 }

@@ -6,13 +6,12 @@ import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.PlayAddonProperties
 import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
-import net.minidev.json.JSONObject
 import org.scalacheck.Gen._
 import org.scalacheck.Shrink
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite {

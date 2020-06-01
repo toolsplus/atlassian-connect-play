@@ -1,12 +1,12 @@
 package io.toolsplus.atlassian.connect.play.ws
 
-import javax.inject.Inject
+import java.net.URI
 
-import com.netaporter.uri.Uri
-import UriImplicits._
+import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
 import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
+import javax.inject.Inject
 import play.api.libs.ws.{WSClient, WSRequest, WSSignatureCalculator}
 
 /**
@@ -35,18 +35,21 @@ class AtlassianConnectHttpClient @Inject()(ws: WSClient,
 
   private def request(url: String, signatureCalculator: WSSignatureCalculator)(
       implicit host: AtlassianHost) = {
-    val requestUri = Uri.parse(url)
+    val requestUri = URI.create(url)
     val absoluteUrl =
       if (!requestUri.isAbsolute) absoluteRequestUrl(requestUri, host).toString
       else url
     ws.url(absoluteUrl).sign(signatureCalculator)
   }
 
-  private def absoluteRequestUrl(requestUri: Uri, host: AtlassianHost) = {
-    val baseUri = Uri.parse(host.baseUrl)
-    val fullRelativeUri = Uri(
-      pathParts = baseUri.pathParts ++ requestUri.pathParts)
-    Uri(baseUri.toURI.resolve(fullRelativeUri.toURI))
+  private def absoluteRequestUrl(requestUri: URI, host: AtlassianHost): URI = {
+    val baseUrl = Url.parse(host.baseUrl)
+    val requestUrl = Url.parse(requestUri.toString)
+    URI.create(
+      baseUrl
+        .withPath(baseUrl.path.addParts(requestUrl.path.parts))
+        .withQueryString(requestUrl.query)
+        .withFragment(requestUrl.fragment)
+        .toString)
   }
-
 }
