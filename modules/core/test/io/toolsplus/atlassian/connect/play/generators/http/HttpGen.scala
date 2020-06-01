@@ -9,11 +9,11 @@ trait HttpGen {
 
   def methodGen: Gen[String] = oneOf("GET", "PUT", "POST", "DELETE", "PATCH")
 
-  def pathGen: Gen[String] =
-    listOf(alphaNumStr.suchThat(!_.isEmpty)).map(s => s"${s.mkString("/")}")
+  def rootRelativePathGen: Gen[String] =
+    listOf(alphaNumStr.suchThat(!_.isEmpty)).map(s => s"/${s.mkString("/")}")
 
-  def pathWithQueryGen: Gen[String] = for {
-    uri <- pathGen
+  def rootRelativePathWithQueryGen: Gen[String] = for {
+    uri <- rootRelativePathGen
     query <- queryStringGen
   } yield s"$uri?$query"
 

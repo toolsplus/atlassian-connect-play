@@ -1,17 +1,11 @@
 package io.toolsplus.atlassian.connect.play.actions
 
-import javax.inject.Inject
-
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  JwtAuthenticationError,
-  JwtAuthenticationProvider,
-  JwtCredentials,
-  UnknownJwtIssuerError
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt.{JwtAuthenticationError, JwtAuthenticationProvider, JwtCredentials, UnknownJwtIssuerError}
 import io.toolsplus.atlassian.connect.play.controllers.routes
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
+import javax.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
@@ -98,8 +92,8 @@ class MaybeAtlassianHostUserActionRefiner @Inject()(
       routes.LifecycleController.uninstalled().absoluteURL()(request))
 
   private def isRequestToUrl[A](request: Request[A], url: String): Boolean = {
-    val requestUri = Uri.parse(request.uri)
-    val referenceUri = Uri.parse(url)
+    val requestUri = Url.parse(request.uri)
+    val referenceUri = Url.parse(url)
     requestUri.path == referenceUri.path && referenceUri.query.paramMap.toSet
       .subsetOf(requestUri.query.paramMap.toSet)
   }
@@ -113,7 +107,7 @@ class OptionalAtlassianHostUserAction @Inject()(
     extends ActionBuilder[MaybeAtlassianHostUserRequest, AnyContent] {
   override def invokeBlock[A](
       request: Request[A],
-      block: (MaybeAtlassianHostUserRequest[A]) => Future[Result]) = {
+      block: MaybeAtlassianHostUserRequest[A] => Future[Result]): Future[Result] = {
     (jwtActionRefiner andThen atlassianHostUserActionRefiner)
       .invokeBlock(request, block)
   }

@@ -1,7 +1,8 @@
 package io.toolsplus.atlassian.connect.play.ws
 
+import java.net.URI
+
 import akka.util.ByteString
-import com.netaporter.uri.Uri
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
@@ -18,11 +19,11 @@ import scala.concurrent.{Future, Promise}
 
 class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
 
-  val action = app.injector.instanceOf[DefaultActionBuilder]
-  val parser = app.injector.instanceOf[PlayBodyParsers]
+  val action: DefaultActionBuilder = app.injector.instanceOf[DefaultActionBuilder]
+  val parser: PlayBodyParsers = app.injector.instanceOf[PlayBodyParsers]
 
   val testServerPort = 44444
-  val jwtGenerator = mock[JwtGenerator]
+  val jwtGenerator: JwtGenerator = mock[JwtGenerator]
 
   "Given a AtlassianConnectHttpClient" when {
 
@@ -31,8 +32,8 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
       "successfully return a WSRequest with resolved host URL" in WsTestClient
         .withClient { client =>
           val httpClient = new AtlassianConnectHttpClient(client, jwtGenerator)
-          forAll(pathGen, atlassianHostGen) { (path, host) =>
-            val absoluteRequestUri = Uri.parse(s"${host.baseUrl}/$path")
+          forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
+            val absoluteRequestUri = URI.create(s"${host.baseUrl}$path")
             val request = httpClient.authenticatedAsAddon(path)(host)
             request.url mustBe absoluteRequestUri.toString
           }
@@ -40,14 +41,14 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
 
       "set correct authorization and user-agent request headers" in {
         implicit val doNotShrinkStrings = Shrink[String](_ => Stream.empty)
-        forAll(atlassianHostGen) { (host) =>
+        forAll(atlassianHostGen) { host =>
           val path = "foo"
           forAll(jwtCredentialsGen(host, subject = "bar")) { credentials =>
             val absoluteRequestUri =
-              Uri.parse(s"http://localhost:$testServerPort/$path")
+              URI.create(s"http://localhost:$testServerPort/$path")
 
             (jwtGenerator
-              .createJwtToken(_: String, _: Uri, _: AtlassianHost))
+              .createJwtToken(_: String, _: URI, _: AtlassianHost))
               .expects("GET", absoluteRequestUri, host)
               .returning(Right(credentials.rawJwt))
 

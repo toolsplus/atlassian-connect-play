@@ -1,6 +1,7 @@
 package io.toolsplus.atlassian.connect.play.ws
 
-import com.netaporter.uri.Uri
+import java.net.URI
+
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import org.scalacheck.Gen._
@@ -9,7 +10,7 @@ import scala.concurrent.Future
 
 class AtlassianHostUriResolverSpec extends TestSpec {
 
-  val hostRepository = mock[AtlassianHostRepository]
+  val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
 
   val hostUriResolver = new AtlassianHostUriResolver(hostRepository)
 
@@ -18,15 +19,15 @@ class AtlassianHostUriResolverSpec extends TestSpec {
     "asked if a given URI is matching a given host" should {
 
       "return true if host base URL matches first part of given URI" in {
-        forAll(pathGen, atlassianHostGen) { (path, host) =>
-          val uri = Uri.parse(s"${host.baseUrl}/$path")
+        forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
+          val uri = URI.create(s"${host.baseUrl}/$path")
           AtlassianHostUriResolver.isRequestToHost(uri, host) mustBe true
         }
       }
 
       "return false if host base URL does not match given URI" in {
-        forAll(alphaStr.suchThat(!_.isEmpty), pathGen, atlassianHostGen) { (hostName, path, host) =>
-          val uri = Uri.parse(s"$hostName/$path")
+        forAll(alphaStr.suchThat(!_.isEmpty), rootRelativePathGen, atlassianHostGen) { (hostName, path, host) =>
+          val uri = URI.create(s"$hostName/$path")
           AtlassianHostUriResolver.isRequestToHost(uri, host) mustBe true
         }
       }
@@ -36,8 +37,8 @@ class AtlassianHostUriResolverSpec extends TestSpec {
     "asked to look-up host for a given URI" should {
 
       "successfully return matching host" in {
-        forAll(pathGen, atlassianHostGen) { (path, host) =>
-          val uri = Uri.parse(s"${host.baseUrl}/$path")
+        forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
+          val uri = URI.create(s"${host.baseUrl}/$path")
 
           (hostRepository
             .findByBaseUrl(_: String)) expects host.baseUrl returning Future
@@ -51,8 +52,8 @@ class AtlassianHostUriResolverSpec extends TestSpec {
       }
 
       "return None if no matching host can be found" in {
-        forAll(pathGen, atlassianHostGen) { (path, host) =>
-          val uri = Uri.parse(s"${host.baseUrl}/$path")
+        forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
+          val uri = URI.create(s"${host.baseUrl}/$path")
 
           (hostRepository
             .findByBaseUrl(_: String)) expects host.baseUrl returning Future
@@ -66,9 +67,9 @@ class AtlassianHostUriResolverSpec extends TestSpec {
       }
 
       "return None if given URI is relative" in {
-        forAll(pathGen) { path =>
+        forAll(rootRelativePathGen) { path =>
           await {
-            hostUriResolver.hostFromRequestUrl(Uri.parse(path))
+            hostUriResolver.hostFromRequestUrl(URI.create(path))
           } mustBe None
         }
       }

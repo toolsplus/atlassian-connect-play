@@ -3,8 +3,14 @@ package io.toolsplus.atlassian.connect.play.services
 import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
-import io.toolsplus.atlassian.connect.play.api.events.{AppInstalledEvent, AppUninstalledEvent}
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser}
+import io.toolsplus.atlassian.connect.play.api.events.{
+  AppInstalledEvent,
+  AppUninstalledEvent
+}
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AtlassianHost,
+  AtlassianHostUser
+}
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.events.EventBus
 import io.toolsplus.atlassian.connect.play.models.Implicits._
@@ -65,8 +71,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
       _ = logger.info(
         s"Saved installation for previously installed host ${newHost.baseUrl} (${newHost.clientKey})")
-      host <- EitherT.right[LifecycleError](
-        hostRepository.save(newHost))
+      host <- EitherT.right[LifecycleError](hostRepository.save(newHost))
     } yield host
 
   /** Install the given [[AtlassianHost]] for the first time.
@@ -112,8 +117,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
         .toEitherT[Future]
       _ <- assertHostAuthorized(uninstalledEvent, hostUser).toEitherT[Future]
       maybeExistingHost <- EitherT
-        .right[LifecycleError](
-          existingHostByLifecycleEvent(uninstalledEvent))
+        .right[LifecycleError](existingHostByLifecycleEvent(uninstalledEvent))
       result <- uninstall(uninstalledEvent, maybeExistingHost)
       _ = EventBus.publish(AppUninstalledEvent(hostUser.host))
     } yield result
@@ -129,7 +133,8 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       case None =>
         logger.error(
           s"Received authenticated uninstall request but no installation for host ${uninstalledEvent.baseUrl} has been found. Assume the add-on has been removed.")
-        EitherT.left(Future.successful(MissingAtlassianHostError))
+        EitherT[Future, LifecycleError, AtlassianHost](
+          Future.successful(Left(MissingAtlassianHostError)))
     }
   }
 

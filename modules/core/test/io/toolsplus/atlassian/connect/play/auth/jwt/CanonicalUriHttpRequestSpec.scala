@@ -1,9 +1,10 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import com.netaporter.uri.Uri
+import java.net.URI
+
+import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
 import org.scalacheck.Shrink
-import io.toolsplus.atlassian.connect.play.ws.UriImplicits._
 
 class CanonicalUriHttpRequestSpec extends TestSpec {
 
@@ -14,31 +15,40 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
     "created from standard parameters" should {
 
       "return the given method" in {
-        forAll(methodGen, pathGen, pathGen) {
+        forAll(methodGen, rootRelativePathGen, rootRelativePathGen) {
           (method, requestPath, contextPath) =>
             CanonicalUriHttpRequest(method,
-                                    Uri.parse(requestPath),
+                                    URI.create(requestPath),
                                     contextPath).method mustBe method
         }
       }
 
       "return the relative path" in {
-        forAll(methodGen, pathWithQueryGen, pathGen) {
+        forAll(methodGen, rootRelativePathWithQueryGen, rootRelativePathGen) {
           (method, relativePath, contextPath) =>
-            val relativeUri = Uri.parse(relativePath)
-            val contextUri = Uri.parse(contextPath)
-            val requestUri = contextUri.append(relativeUri)
+            val relativeUri = Url.parse(relativePath)
+            val contextUri = Url.parse(contextPath)
+            val requestUri = contextUri
+              .withPath(contextUri.path.addParts(relativeUri.path.parts))
+              .withQueryString(relativeUri.query)
             val expectedRelativePath =
-              if (relativeUri.path.isEmpty) "/" else relativeUri.path
-            CanonicalUriHttpRequest(method, requestUri, contextPath).relativePath mustBe expectedRelativePath
+              if (relativeUri.path.isEmpty) "/" else relativeUri.path.toString
+            CanonicalUriHttpRequest(
+              method,
+              URI.create(requestUri.toString),
+              contextPath).relativePath mustBe expectedRelativePath
         }
       }
 
       "return the parameter map" in {
-        forAll(methodGen, pathWithQueryGen, pathGen) {
+        forAll(methodGen, rootRelativePathWithQueryGen, rootRelativePathGen) {
           (method, requestPath, contextPath) =>
-            val requestUri = Uri.parse(requestPath)
-            CanonicalUriHttpRequest(method, requestUri, contextPath).parameterMap mustBe requestUri.query.paramMap
+            CanonicalUriHttpRequest(method,
+                                    URI.create(requestPath),
+                                    contextPath).parameterMap mustBe Url
+              .parse(requestPath)
+              .query
+              .paramMap
         }
       }
 
