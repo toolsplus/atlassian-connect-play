@@ -1,7 +1,7 @@
 Atlassian Connect Play
 ======================
 
-[![Build Status](https://travis-ci.org/toolsplus/atlassian-connect-play.svg?branch=master)](https://travis-ci.org/toolsplus/atlassian-connect-play)
+[![Build Status](https://github.com/toolsplus/atlassian-connect-play/workflows/CI/badge.svg)](https://github.com/toolsplus/atlassian-connect-play/actions)
 [![codecov](https://codecov.io/gh/toolsplus/atlassian-connect-play/branch/master/graph/badge.svg)](https://codecov.io/gh/toolsplus/atlassian-connect-play)
 [![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.13.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.13)
 
