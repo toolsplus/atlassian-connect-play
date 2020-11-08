@@ -24,7 +24,7 @@ object Version {
   val cats = "2.1.1"
   val circe = "0.13.0"
   val playCirce = "2812.0"
-  val scalaUri = "2.2.2"
+  val scalaUri = "2.2.6"
   val scalaTest = "3.1.2"
   val scalaTestPlusPlay = "5.1.0"
   val scalaTestPlusScalaCheck = "3.1.2.0"
