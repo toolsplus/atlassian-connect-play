@@ -30,7 +30,7 @@ object Version {
   val scalaTestPlusScalaCheck = "3.1.2.0"
   val scalaMock = "4.4.0"
   val scalaCheck = "1.14.3"
-  val akkaTestKit = "2.6.5"
+  val akkaTestKit = "2.6.10"
 }
 
 object Library {
