@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.syntax.all._
 import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
 import io.circe.generic.auto._

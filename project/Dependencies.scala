@@ -21,7 +21,7 @@ object Dependencies {
 
 object Version {
   val atlassianJwt = "0.1.8"
-  val cats = "2.1.1"
+  val cats = "2.2.0"
   val circe = "0.13.0"
   val playCirce = "2812.0"
   val scalaUri = "2.2.2"
