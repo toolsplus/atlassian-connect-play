@@ -1,0 +1,22 @@
+pull_request_rules:
+  - name: Assign and label Scala Steward's PRs
+    conditions:
+      - author=toolsplus-scala-steward
+    actions:
+      assign:
+        users: [tbinna]
+      label:
+        add: [dependency-update]
+  - name: Merge Scala Steward's PRs
+    conditions:
+      - author=toolsplus-scala-steward
+      - check-success=Compile, test
+    actions:
+      merge:
+        method: rebase
+        strict: true
+  - name: Delete the PR branch after merge
+    conditions:
+      - merged
+    actions:
+      delete_head_branch: { }
