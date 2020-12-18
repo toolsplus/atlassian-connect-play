@@ -29,7 +29,7 @@ object Version {
   val scalaTestPlusPlay = "5.1.0"
   val scalaTestPlusScalaCheck = "3.1.2.0"
   val scalaMock = "4.4.0"
-  val scalaCheck = "1.14.3"
+  val scalaCheck = "1.15.2"
   val akkaTestKit = "2.6.5"
 }
 
