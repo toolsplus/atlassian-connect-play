@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.services
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.syntax.all._
 import com.google.inject.Inject
 import io.toolsplus.atlassian.connect.play.api.events.{
   AppInstalledEvent,

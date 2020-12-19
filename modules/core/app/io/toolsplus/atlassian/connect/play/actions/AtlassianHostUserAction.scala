@@ -1,8 +1,6 @@
 package io.toolsplus.atlassian.connect.play.actions
 
 import javax.inject.Inject
-
-import cats.implicits._
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.auth.jwt.{
   JwtAuthenticationProvider,
