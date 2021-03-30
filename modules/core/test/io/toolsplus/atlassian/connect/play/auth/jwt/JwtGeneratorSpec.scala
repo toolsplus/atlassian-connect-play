@@ -1,25 +1,19 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import java.net.URI
-
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
-import io.toolsplus.atlassian.connect.play.models.{
-  AtlassianConnectProperties,
-  PlayAddonProperties
-}
-import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
+import io.toolsplus.atlassian.connect.play.models.{AtlassianConnectProperties, PlayAddonProperties}
 import io.toolsplus.atlassian.jwt._
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import org.scalacheck.Gen
 import org.scalacheck.Gen._
-import org.scalacheck.{Gen, Shrink}
 import org.scalatest.Assertion
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 
-import scala.concurrent.Future
+import java.net.URI
 
 class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
 
@@ -29,10 +23,9 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
   val connectProperties = new AtlassianConnectProperties(config)
 
   val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
-  val hostUriResolver = new AtlassianHostUriResolver(hostRepository)
 
   val jwtGenerator =
-    new JwtGenerator(addonProperties, connectProperties, hostUriResolver)
+    new JwtGenerator(addonProperties, connectProperties)
 
   val toleranceSeconds = 2
 
@@ -114,60 +107,9 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         }
       }
 
-    }
-
-    "asked to generate a token without a Atlassian host" should {
-
-      "successfully generate token" in {
-        forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
-          (method, relativePath, host) =>
-            val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
-
-            (hostRepository
-              .findByBaseUrl(_: String)) expects host.baseUrl returning Future
-              .successful(Some(host))
-
-            val result = await {
-              jwtGenerator.createJwtToken(method, absoluteUri)
-            }
-            result match {
-              case Right(_) => succeed
-              case Left(_)  => fail
-            }
-        }
-      }
-
-      "fail if given URI is not absolute" in {
-        forAll(methodGen, rootRelativePathGen) { (method, relativePath) =>
-          val result = await {
-            jwtGenerator.createJwtToken(method, URI.create(relativePath))
-          }
-          result mustBe Left(RelativeUriError)
-        }
-      }
-
-      "fail if no host for given URI is found" in {
-        implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
-        forAll(methodGen, rootRelativePathGen, hostNameGen) {
-          (method, relativePath, randomHost) =>
-            val randomBaseUrl =
-              s"https://$randomHost.atlassian.net"
-            val absoluteUri = absoluteHostUri(randomBaseUrl, relativePath)
-
-            (hostRepository
-              .findByBaseUrl(_: String)) expects randomBaseUrl returning Future
-              .successful(None)
-
-            val result = await {
-              jwtGenerator.createJwtToken(method, absoluteUri)
-            }
-            result mustBe Left(AtlassianHostNotFoundError(absoluteUri))
-        }
-      }
-
       "fail if secret key is less than 256 bits" in forAll(methodGen,
-                                                           rootRelativePathGen,
-                                                           atlassianHostGen) {
+        rootRelativePathGen,
+        atlassianHostGen) {
         (method, relativePath, randomHost) =>
           val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
           val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
@@ -178,10 +120,9 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
     }
-
   }
 
-  private def hostNameGen: Gen[String] = alphaStr.suchThat(!_.isEmpty)
+  private def hostNameGen: Gen[String] = alphaStr.suchThat(_.nonEmpty)
 
   private def absoluteHostUri(baseUrl: String, relativePath: String): URI = {
     val base = Url.parse(baseUrl)

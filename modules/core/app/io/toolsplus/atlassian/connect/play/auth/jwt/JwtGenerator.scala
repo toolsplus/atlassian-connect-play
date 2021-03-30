@@ -1,9 +1,5 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import java.net.URI
-import java.time.Duration
-import java.time.temporal.ChronoUnit
-
 import cats.syntax.either._
 import io.toolsplus.atlassian.connect.play.api.models.{AppProperties, AtlassianHost}
 import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
@@ -11,30 +7,18 @@ import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, JwtBuilder}
-import javax.inject.Inject
 import play.api.Logger
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import java.net.URI
+import java.time.Duration
+import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 
 class JwtGenerator @Inject()(
     addonProperties: AppProperties,
-    atlassianConnectProperties: AtlassianConnectProperties,
-    hostUriResolver: AtlassianHostUriResolver) {
+    atlassianConnectProperties: AtlassianConnectProperties) {
 
   private val logger = Logger(classOf[JwtGenerator])
-
-  def createJwtToken(httpMethod: String,
-                     uri: URI): Future[Either[JwtGeneratorError, RawJwt]] = {
-    assertUriAbsolute(uri) match {
-      case Left(e) => Future.successful(Left(e))
-      case Right(_) =>
-        hostUriResolver.hostFromRequestUrl(uri).map {
-          case Some(host) => internalCreateJwtToken(httpMethod, uri, host)
-          case None       => Left(AtlassianHostNotFoundError(uri))
-        }
-    }
-  }
 
   def createJwtToken(httpMethod: String,
                      uri: URI,
