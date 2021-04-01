@@ -5,11 +5,12 @@ import io.toolsplus.atlassian.connect.play.api.models.DefaultAtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.auth.jwt.{
+  CanonicalHttpRequestQshProvider,
   CanonicalPlayHttpRequest,
+  ContextQshProvider,
   JwtAuthenticationProvider,
   JwtCredentials
 }
-import io.toolsplus.atlassian.connect.play.models.PlayAddonProperties
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
@@ -32,18 +33,17 @@ class AtlassianHostUserActionSpec
   val parser = app.injector.instanceOf[BodyParsers.Default]
 
   val hostRepository = mock[AtlassianHostRepository]
-  val addonProperties = new PlayAddonProperties(config)
   val jwtAuthenticationProvider =
-    new JwtAuthenticationProvider(hostRepository, addonProperties)
+    new JwtAuthenticationProvider(hostRepository)
 
   val jwtActionRefiner = new JwtActionRefiner()
-  val atlassianHostUserActionRefiner = new AtlassianHostUserActionRefiner(
-    jwtAuthenticationProvider)
+  val atlassianHostUserActionRefinerFactory =
+    new AtlassianHostUserActionRefinerFactory(jwtAuthenticationProvider)
 
   val atlassianHostUserAction =
     new AtlassianHostUserAction(parser,
                                 jwtActionRefiner,
-                                atlassianHostUserActionRefiner)
+                                atlassianHostUserActionRefinerFactory)
 
   "JwtActionRefiner" when {
 
@@ -81,7 +81,7 @@ class AtlassianHostUserActionSpec
 
     "refining a JwtRequest" should {
 
-      "successfully refine JwtRequest to AtlassianHostUserRequest" in {
+      "successfully refine JwtRequest with context QSH to AtlassianHostUserRequest" in {
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
@@ -95,7 +95,33 @@ class AtlassianHostUserActionSpec
                 .successful(Some(host))
 
               val result = await {
-                atlassianHostUserActionRefiner.refine(jwtRequest)
+                atlassianHostUserActionRefinerFactory
+                  .withQshFrom(ContextQshProvider)
+                  .refine(jwtRequest)
+              }
+              result mustBe Right(
+                AtlassianHostUserRequest(hostUser, jwtRequest))
+            }
+        }
+      }
+
+      "successfully refine JwtRequest with HTTP request QSH to AtlassianHostUserRequest" in {
+        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+          (request, host, subject) =>
+            forAll(jwtCredentialsGen(host, subject)) { credentials =>
+              val jwtRequest = JwtRequest(credentials, request)
+              val hostUser =
+                DefaultAtlassianHostUser(host, None, Option(subject))
+
+              (hostRepository
+                .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+                .successful(Some(host))
+
+              val result = await {
+                atlassianHostUserActionRefinerFactory
+                  .withQshFrom(CanonicalHttpRequestQshProvider)
+                  .refine(jwtRequest)
               }
               result mustBe Right(
                 AtlassianHostUserRequest(hostUser, jwtRequest))
@@ -117,7 +143,9 @@ class AtlassianHostUserActionSpec
                 .successful(Some(host))
 
               val result = await {
-                atlassianHostUserActionRefiner.refine(jwtRequest)
+                atlassianHostUserActionRefinerFactory
+                  .withQshFrom(ContextQshProvider)
+                  .refine(jwtRequest)
               }
               val expectedMessage =
                 s"JWT validation failed: ${invalidCredentials.rawJwt}"

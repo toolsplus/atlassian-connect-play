@@ -1,18 +1,11 @@
 package io.toolsplus.atlassian.connect.play.actions
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.models.DefaultAtlassianHostUser
+import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalPlayHttpRequest,
-  JwtAuthenticationProvider,
-  JwtCredentials
-}
-import io.toolsplus.atlassian.connect.play.models.{
-  PlayAddonProperties,
-  AtlassianConnectProperties
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt._
+import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
@@ -37,20 +30,20 @@ class OptionalAtlassianHostUserActionSpec
   val parser = app.injector.instanceOf[BodyParsers.Default]
 
   val hostRepository = mock[AtlassianHostRepository]
-  val addonProperties = new PlayAddonProperties(config)
   val connectProperties = new AtlassianConnectProperties(config)
   val jwtAuthenticationProvider =
-    new JwtAuthenticationProvider(hostRepository, addonProperties)
+    new JwtAuthenticationProvider(hostRepository)
 
-  val maybeJwtActionRefiner = new MaybeJwtActionRefiner()
-  val maybeAtlassianHostUserActionRefiner =
-    new MaybeAtlassianHostUserActionRefiner(jwtAuthenticationProvider,
-                                            connectProperties)
+  val maybeJwtActionTransformer = new MaybeJwtActionTransformer()
+  val maybeAtlassianHostUserActionRefinerFactory =
+    new MaybeAtlassianHostUserActionRefinerFactory(jwtAuthenticationProvider,
+                                                   connectProperties)
 
   val optionalAtlassianHostUserAction =
-    new OptionalAtlassianHostUserAction(parser,
-                                        maybeJwtActionRefiner,
-                                        maybeAtlassianHostUserActionRefiner)
+    new OptionalAtlassianHostUserAction(
+      parser,
+      maybeJwtActionTransformer,
+      maybeAtlassianHostUserActionRefinerFactory)
 
   "MaybeJwtActionRefiner" when {
 
@@ -64,7 +57,7 @@ class OptionalAtlassianHostUserActionSpec
           val jwtCredentials =
             JwtCredentials(rawJwt, CanonicalPlayHttpRequest(jwtRequest))
           val result = await {
-            maybeJwtActionRefiner.refine(jwtRequest)
+            maybeJwtActionTransformer.refine(jwtRequest)
           }
           result mustBe Right(MaybeJwtRequest(Some(jwtCredentials), jwtRequest))
         }
@@ -74,7 +67,7 @@ class OptionalAtlassianHostUserActionSpec
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(playRequestGen) { request =>
           val result = await {
-            maybeJwtActionRefiner.refine(request)
+            maybeJwtActionTransformer.refine(request)
           }
           result mustBe Right(MaybeJwtRequest(None, request))
         }
@@ -88,7 +81,7 @@ class OptionalAtlassianHostUserActionSpec
 
     "refining a MaybeJwtRequest" should {
 
-      "successfully refine request to MaybeAtlassianHostUserRequest" in {
+      "successfully refine request with context QSH to MaybeAtlassianHostUserRequest" in {
         implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
@@ -102,7 +95,33 @@ class OptionalAtlassianHostUserActionSpec
                 .successful(Some(host))
 
               val result = await {
-                maybeAtlassianHostUserActionRefiner.refine(jwtRequest)
+                maybeAtlassianHostUserActionRefinerFactory
+                  .withQshFrom(ContextQshProvider)
+                  .refine(jwtRequest)
+              }
+              result mustBe Right(
+                MaybeAtlassianHostUserRequest(Some(hostUser), jwtRequest))
+            }
+        }
+      }
+
+      "successfully refine request with HTTP request QSH to MaybeAtlassianHostUserRequest" in {
+        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+          (request, host, subject) =>
+            forAll(jwtCredentialsGen(host, subject)) { credentials =>
+              val jwtRequest = MaybeJwtRequest(Some(credentials), request)
+              val hostUser =
+                DefaultAtlassianHostUser(host, None, Option(subject))
+
+              (hostRepository
+                .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+                .successful(Some(host))
+
+              val result = await {
+                maybeAtlassianHostUserActionRefinerFactory
+                  .withQshFrom(CanonicalHttpRequestQshProvider)
+                  .refine(jwtRequest)
               }
               result mustBe Right(
                 MaybeAtlassianHostUserRequest(Some(hostUser), jwtRequest))
@@ -124,7 +143,9 @@ class OptionalAtlassianHostUserActionSpec
               .successful(None)
 
             val result = await {
-              maybeAtlassianHostUserActionRefiner.refine(jwtRequest)
+              maybeAtlassianHostUserActionRefinerFactory
+                .withQshFrom(CanonicalHttpRequestQshProvider)
+                .refine(jwtRequest)
             }
             result mustBe Right(MaybeAtlassianHostUserRequest(None, jwtRequest))
           }
@@ -137,7 +158,9 @@ class OptionalAtlassianHostUserActionSpec
           val jwtRequest = MaybeJwtRequest(None, request)
 
           val result = await {
-            maybeAtlassianHostUserActionRefiner.refine(jwtRequest)
+            maybeAtlassianHostUserActionRefinerFactory
+              .withQshFrom(CanonicalHttpRequestQshProvider)
+              .refine(jwtRequest)
           }
           result mustBe Right(MaybeAtlassianHostUserRequest(None, jwtRequest))
         }
@@ -158,7 +181,9 @@ class OptionalAtlassianHostUserActionSpec
                 .successful(Some(host))
 
               val result = await {
-                maybeAtlassianHostUserActionRefiner.refine(jwtRequest)
+                maybeAtlassianHostUserActionRefinerFactory
+                  .withQshFrom(CanonicalHttpRequestQshProvider)
+                  .refine(jwtRequest)
               }
               val expectedMessage =
                 s"JWT validation failed: ${invalidCredentials.rawJwt}"
