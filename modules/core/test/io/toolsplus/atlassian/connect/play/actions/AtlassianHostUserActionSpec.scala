@@ -4,18 +4,13 @@ import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.DefaultAtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalHttpRequestQshProvider,
-  CanonicalPlayHttpRequest,
-  ContextQshProvider,
-  JwtAuthenticationProvider,
-  JwtCredentials
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalHttpRequestQshProvider, CanonicalPlayHttpRequest, ContextQshProvider, JwtAuthenticationProvider, JwtCredentials}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
 import org.scalatest.EitherValues
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.mvc.BodyParsers
 import play.api.mvc.Results.Unauthorized
@@ -28,11 +23,11 @@ class AtlassianHostUserActionSpec
     with GuiceOneAppPerSuite
     with EitherValues {
 
-  val config = app.configuration
+  val config: Configuration = app.configuration
 
-  val parser = app.injector.instanceOf[BodyParsers.Default]
+  val parser: BodyParsers.Default = app.injector.instanceOf[BodyParsers.Default]
 
-  val hostRepository = mock[AtlassianHostRepository]
+  val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
   val jwtAuthenticationProvider =
     new JwtAuthenticationProvider(hostRepository)
 
@@ -50,7 +45,7 @@ class AtlassianHostUserActionSpec
     "refining a standard Request" should {
 
       "successfully refine request to JwtRequest" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
           val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
@@ -64,7 +59,7 @@ class AtlassianHostUserActionSpec
       }
 
       "fail to refine request if it does not contain a token" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           val result = await {
             jwtActionRefiner.refine(request)
@@ -82,7 +77,7 @@ class AtlassianHostUserActionSpec
     "refining a JwtRequest" should {
 
       "successfully refine JwtRequest with context QSH to AtlassianHostUserRequest" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
@@ -106,7 +101,7 @@ class AtlassianHostUserActionSpec
       }
 
       "successfully refine JwtRequest with HTTP request QSH to AtlassianHostUserRequest" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
@@ -130,7 +125,7 @@ class AtlassianHostUserActionSpec
       }
 
       "fail to refine request if authentication fails" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>

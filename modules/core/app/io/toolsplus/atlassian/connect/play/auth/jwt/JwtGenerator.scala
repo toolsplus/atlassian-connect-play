@@ -33,8 +33,9 @@ class JwtGenerator @Inject()(
       httpMethod: String,
       uri: URI,
       host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
+    val hostContextPath = Option(URI.create(host.baseUrl).getPath)
     val canonicalHttpRequest =
-      CanonicalUriHttpRequest(httpMethod, uri, host.baseUrl)
+      CanonicalUriHttpRequest(httpMethod, uri, hostContextPath)
     logger.trace(
       s"Generating JWT with canonical request: $canonicalHttpRequest")
     val queryHash =

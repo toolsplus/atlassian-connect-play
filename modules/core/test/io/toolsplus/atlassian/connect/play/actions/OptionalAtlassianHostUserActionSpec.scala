@@ -11,6 +11,7 @@ import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
 import org.scalatest.EitherValues
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.mvc.BodyParsers
 import play.api.mvc.Results.Unauthorized
@@ -25,11 +26,11 @@ class OptionalAtlassianHostUserActionSpec
     with GuiceOneAppPerSuite
     with EitherValues {
 
-  val config = app.configuration
+  val config: Configuration = app.configuration
 
-  val parser = app.injector.instanceOf[BodyParsers.Default]
+  val parser: BodyParsers.Default = app.injector.instanceOf[BodyParsers.Default]
 
-  val hostRepository = mock[AtlassianHostRepository]
+  val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
   val connectProperties = new AtlassianConnectProperties(config)
   val jwtAuthenticationProvider =
     new JwtAuthenticationProvider(hostRepository)
@@ -50,7 +51,7 @@ class OptionalAtlassianHostUserActionSpec
     "refining a standard Request" should {
 
       "successfully refine request to MaybeJwtRequest including token" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
           val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
@@ -64,7 +65,7 @@ class OptionalAtlassianHostUserActionSpec
       }
 
       "successfully refine request to MaybeJwtRequest without a token" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           val result = await {
             maybeJwtActionTransformer.refine(request)
@@ -82,7 +83,7 @@ class OptionalAtlassianHostUserActionSpec
     "refining a MaybeJwtRequest" should {
 
       "successfully refine request with context QSH to MaybeAtlassianHostUserRequest" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
@@ -106,7 +107,7 @@ class OptionalAtlassianHostUserActionSpec
       }
 
       "successfully refine request with HTTP request QSH to MaybeAtlassianHostUserRequest" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>
@@ -130,7 +131,7 @@ class OptionalAtlassianHostUserActionSpec
       }
 
       "successfully refine request for an unknown host if it is an 'uninstalled' request" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(atlassianHostGen, alphaStr) { (host, subject) =>
           forAll(jwtCredentialsGen(host, subject)) { credentials =>
             val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} ${credentials.rawJwt}"
@@ -153,7 +154,7 @@ class OptionalAtlassianHostUserActionSpec
       }
 
       "successfully refine request to MaybeAtlassianHostUserRequest without a token" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           val jwtRequest = MaybeJwtRequest(None, request)
 
@@ -167,7 +168,7 @@ class OptionalAtlassianHostUserActionSpec
       }
 
       "fail to refine request if authentication fails" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen, atlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(jwtCredentialsGen(host, subject)) { credentials =>

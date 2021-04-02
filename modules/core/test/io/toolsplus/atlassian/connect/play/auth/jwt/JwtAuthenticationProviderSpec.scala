@@ -14,7 +14,10 @@ import play.api.Configuration
 import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
-class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite with  CanonicalHttpRequestGen {
+class JwtAuthenticationProviderSpec
+    extends TestSpec
+    with GuiceOneAppPerSuite
+    with CanonicalHttpRequestGen {
 
   val config: Configuration = app.configuration
 
@@ -49,7 +52,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           implicit val stringNoShrink: Shrink[String] =
-            Shrink[String](_ => Stream.empty)
+            Shrink.shrinkAny
           val customClaims = Seq("iss" -> host.clientKey)
           forAll(jwtCredentialsGen(secret = host.sharedSecret, customClaims)) {
             credentials =>
@@ -58,7 +61,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
                 .successful(None)
 
               val result = await {
-                jwtAuthenticationProvider.authenticate(credentials, "fake-qsh").value
+                jwtAuthenticationProvider
+                  .authenticate(credentials, "fake-qsh")
+                  .value
               }
               result mustBe Left(UnknownJwtIssuerError(host.clientKey))
           }
@@ -71,7 +76,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
 
       "fail if authenticated credentials' issuer does not exist" in {
         implicit val stringNoShrink: Shrink[String] =
-          Shrink[String](_ => Stream.empty)
+          Shrink.shrinkAny
         forAll(atlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -79,7 +84,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
           forAll(jwtCredentialsGen(secret = host.sharedSecret, customClaims)) {
             credentials =>
               val result = await {
-                jwtAuthenticationProvider.authenticate(credentials, "fake-qsh").value
+                jwtAuthenticationProvider
+                  .authenticate(credentials, "fake-qsh")
+                  .value
               }
               val expectedMessage =
                 "Missing client key claim for Atlassian token"
@@ -90,7 +97,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
 
       "fail if credentials' signature is not valid" in {
         implicit val stringNoShrink: Shrink[String] =
-          Shrink[String](_ => Stream.empty)
+          Shrink.shrinkAny
         forAll(atlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -120,7 +127,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
 
       "successfully authenticate valid credentials" in {
         implicit val stringNoShrink: Shrink[String] =
-          Shrink[String](_ => Stream.empty)
+          Shrink.shrinkAny
         forAll(atlassianHostGen, alphaStr) { (aHost, subject) =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -132,7 +139,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
                 .successful(Some(host))
 
               val result = await {
-                jwtAuthenticationProvider.authenticate(credentials, "fake-qsh").value
+                jwtAuthenticationProvider
+                  .authenticate(credentials, "fake-qsh")
+                  .value
               }
               result mustBe Right(
                 DefaultAtlassianHostUser(host, None, Option(subject)))
@@ -142,7 +151,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
 
       "successfully authenticate credentials without context claim (as after GDPR migration)" in {
         implicit val stringNoShrink: Shrink[String] =
-          Shrink[String](_ => Stream.empty)
+          Shrink.shrinkAny
         forAll(atlassianHostGen, alphaStr) { (aHost, userAccountId) =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -155,7 +164,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
                 .successful(Some(host))
 
               val result = await {
-                jwtAuthenticationProvider.authenticate(credentials, "fake-qsh").value
+                jwtAuthenticationProvider
+                  .authenticate(credentials, "fake-qsh")
+                  .value
               }
               result mustBe Right(
                 DefaultAtlassianHostUser(host, None, Some(userAccountId)))
@@ -165,7 +176,7 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
 
       "successfully authenticate credentials with context claim (as before GDPR migration)" in {
         implicit val stringNoShrink: Shrink[String] =
-          Shrink[String](_ => Stream.empty)
+          Shrink.shrinkAny
         forAll(atlassianHostGen, alphaStr, option(alphaStr)) {
           (aHost, userKey, userAccountId) =>
             val host =
@@ -184,7 +195,9 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
                   .successful(Some(host))
 
                 val result = await {
-                  jwtAuthenticationProvider.authenticate(credentials, "fake-qsh").value
+                  jwtAuthenticationProvider
+                    .authenticate(credentials, "fake-qsh")
+                    .value
                 }
                 result mustBe Right(
                   DefaultAtlassianHostUser(host, Some(userKey), userAccountId))
@@ -193,35 +206,34 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
       }
 
       "successfully authenticate credentials with a with HTTP request QSH claim" in {
-        implicit val stringNoShrink: Shrink[String] = {
-          Shrink[String](_ => Stream.empty)
-        }
-        forAll(atlassianHostGen, alphaStr, canonicalHttpRequestGen) { (aHost, userAccountId, canonicalHttpRequest) =>
-          val host = {
-            aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
-          }
-          val qsh = CanonicalHttpRequestQshProvider.qsh(canonicalHttpRequest)
-          val customClaims =
-            Seq("iss" -> host.clientKey, "sub" -> userAccountId, "qsh" -> qsh)
-          forAll(jwtCredentialsGen(secret = host.sharedSecret, customClaims)) {
-            credentials =>
-              (hostRepository
-                .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
-                .successful(Some(host))
+        implicit val stringNoShrink: Shrink[String] =
+          Shrink.shrinkAny
+        forAll(atlassianHostGen, alphaStr, canonicalHttpRequestGen) {
+          (aHost, userAccountId, canonicalHttpRequest) =>
+            val host = {
+              aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
+            }
+            val qsh = CanonicalHttpRequestQshProvider.qsh(canonicalHttpRequest)
+            val customClaims =
+              Seq("iss" -> host.clientKey, "sub" -> userAccountId, "qsh" -> qsh)
+            forAll(jwtCredentialsGen(secret = host.sharedSecret, customClaims)) {
+              credentials =>
+                (hostRepository
+                  .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+                  .successful(Some(host))
 
-              val result = await {
-                jwtAuthenticationProvider.authenticate(credentials, qsh).value
-              }
-              result mustBe Right(
-                DefaultAtlassianHostUser(host, None, Some(userAccountId)))
-          }
+                val result = await {
+                  jwtAuthenticationProvider.authenticate(credentials, qsh).value
+                }
+                result mustBe Right(
+                  DefaultAtlassianHostUser(host, None, Some(userAccountId)))
+            }
         }
       }
 
       "successfully authenticate credentials with a context QSH claim" in {
-        implicit val stringNoShrink: Shrink[String] = {
-          Shrink[String](_ => Stream.empty)
-        }
+        implicit val stringNoShrink: Shrink[String] =
+          Shrink.shrinkAny
         forAll(atlassianHostGen, alphaStr) { (aHost, userAccountId) =>
           val host = {
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -245,5 +257,4 @@ class JwtAuthenticationProviderSpec extends TestSpec with GuiceOneAppPerSuite wi
       }
     }
   }
-
 }

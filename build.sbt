@@ -2,7 +2,7 @@ import ReleaseTransformations._
 
 val commonSettings = Seq(
   organization := "io.toolsplus",
-  scalaVersion := "2.13.2",
+  scalaVersion := "2.13.5",
   resolvers ++= Seq(
     "Typesafe repository releases" at "https://repo.typesafe.com/typesafe/releases/",
     "Bintary JCenter" at "https://jcenter.bintray.com"

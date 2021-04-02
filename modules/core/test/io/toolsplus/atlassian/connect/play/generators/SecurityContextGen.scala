@@ -34,16 +34,18 @@ trait SecurityContextGen {
 
   def productTypeGen: Gen[String] = oneOf("jira", "confluence")
 
+  def hostBaseUrlGen: Gen[String] =  alphaStr.suchThat(_.nonEmpty).map(hostName => s"https://$hostName.atlassian.net")
+
   def securityContextGen: Gen[SecurityContext]=
     for {
       key <- alphaStr
       clientKey <- clientKeyGen
       publicKey <- alphaNumStr
       oauthClientId <- option(alphaNumStr)
-      sharedSecret <- alphaNumStr.suchThat(s => s.length >= 32 && !s.isEmpty)
+      sharedSecret <- alphaNumStr.suchThat(s => s.length >= 32 && s.nonEmpty)
       serverVersion <- numStr
       pluginsVersion <- pluginVersionGen
-      baseUrl <- alphaStr.suchThat(!_.isEmpty)
+      baseUrl <- hostBaseUrlGen
       productType <- productTypeGen
       description <- alphaStr
       serviceEntitlementNumber <- option(numStr)
@@ -55,7 +57,7 @@ trait SecurityContextGen {
        sharedSecret,
        serverVersion,
        pluginsVersion,
-       s"https://$baseUrl.atlassian.net",
+        baseUrl,
        productType,
        description,
        serviceEntitlementNumber)
