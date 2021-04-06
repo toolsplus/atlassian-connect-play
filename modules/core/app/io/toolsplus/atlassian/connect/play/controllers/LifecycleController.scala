@@ -2,11 +2,9 @@ package io.toolsplus.atlassian.connect.play.controllers
 
 import com.google.inject.Inject
 import io.circe.generic.auto._
-import io.toolsplus.atlassian.connect.play.actions.{
-  AtlassianHostUserAction,
-  OptionalAtlassianHostUserAction
-}
+import io.toolsplus.atlassian.connect.play.actions.{AtlassianHostUserAction, OptionalAtlassianHostUserAction}
 import io.toolsplus.atlassian.connect.play.api.models.AppProperties
+import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalHttpRequestQshProvider
 import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import io.toolsplus.atlassian.connect.play.services._
 import play.api.libs.circe.Circe
@@ -31,7 +29,7 @@ class LifecycleController @Inject()(
   import optionalAtlassianHostUserAction.Implicits._
 
   def installed = {
-    optionalAtlassianHostUserAction.async(circe.json[InstalledEvent]) {
+    optionalAtlassianHostUserAction.withQshFrom(CanonicalHttpRequestQshProvider).async(circe.json[InstalledEvent]) {
       implicit request =>
         lifecycleService.installed(request.body).value map {
           case Right(_) => Ok
@@ -49,7 +47,7 @@ class LifecycleController @Inject()(
   }
 
   def uninstalled =
-    atlassianHostUserAction.async(circe.json[GenericEvent]) {
+    atlassianHostUserAction.withQshFrom(CanonicalHttpRequestQshProvider).async(circe.json[GenericEvent]) {
       implicit request =>
         lifecycleService.uninstalled(request.body).value map {
           case Right(_) => NoContent

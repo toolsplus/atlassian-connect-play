@@ -71,10 +71,11 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
           (method, relativePath, host) =>
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
+            val hostContextPath = Option(URI.create(host.baseUrl).getPath)
             jwtGenerator.createJwtToken(method, absoluteUri, host) match {
               case Right(rawJwt) =>
                 val request =
-                  CanonicalUriHttpRequest(method, absoluteUri, host.baseUrl)
+                  CanonicalUriHttpRequest(method, absoluteUri, hostContextPath)
                 val qsh =
                   HttpRequestCanonicalizer.computeCanonicalRequestHash(request)
                 JwtReader(host.sharedSecret).readAndVerify(rawJwt, qsh) match {

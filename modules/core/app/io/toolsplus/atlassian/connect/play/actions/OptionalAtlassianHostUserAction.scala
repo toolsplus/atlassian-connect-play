@@ -2,27 +2,29 @@ package io.toolsplus.atlassian.connect.play.actions
 
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
-import io.toolsplus.atlassian.connect.play.auth.jwt.{JwtAuthenticationError, JwtAuthenticationProvider, JwtCredentials, UnknownJwtIssuerError}
+import io.toolsplus.atlassian.connect.play.auth.jwt._
 import io.toolsplus.atlassian.connect.play.controllers.routes
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
-import javax.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 case class MaybeJwtRequest[A](maybeCredentials: Option[JwtCredentials],
                               request: Request[A])
     extends WrappedRequest[A](request)
 
-class MaybeJwtActionRefiner @Inject()()(
+/**
+  * Play action transformer that tries to extract the JWT credentials from a request
+  */
+class MaybeJwtActionTransformer @Inject()()(
     implicit val executionContext: ExecutionContext)
-    extends ActionRefiner[Request, MaybeJwtRequest] {
-  override def refine[A](
-      request: Request[A]): Future[Either[Result, MaybeJwtRequest[A]]] = {
+    extends ActionTransformer[Request, MaybeJwtRequest] {
+  override def transform[A](request: Request[A]): Future[MaybeJwtRequest[A]] = {
     val maybeCredentials = JwtExtractor.extractJwt(request)
-    Future.successful(Right(MaybeJwtRequest(maybeCredentials, request)))
+    Future.successful(MaybeJwtRequest(maybeCredentials, request))
   }
 }
 
@@ -31,8 +33,9 @@ case class MaybeAtlassianHostUserRequest[A](
     request: MaybeJwtRequest[A])
     extends WrappedRequest[A](request)
 
-class MaybeAtlassianHostUserActionRefiner @Inject()(
+case class MaybeAtlassianHostUserActionRefiner(
     jwtAuthenticationProvider: JwtAuthenticationProvider,
+    qshProvider: QshProvider,
     connectProperties: AtlassianConnectProperties)(
     implicit val executionContext: ExecutionContext)
     extends ActionRefiner[MaybeJwtRequest, MaybeAtlassianHostUserRequest] {
@@ -41,21 +44,31 @@ class MaybeAtlassianHostUserActionRefiner @Inject()(
 
   override def refine[A](request: MaybeJwtRequest[A])
     : Future[Either[Result, MaybeAtlassianHostUserRequest[A]]] = {
+
     request.maybeCredentials match {
       case Some(credentials) =>
-        jwtAuthenticationProvider.authenticate(credentials).value.map {
-          case Right(hostUser) =>
-            Right(MaybeAtlassianHostUserRequest(Some(hostUser), request))
-          case Left(e) =>
-            if (shouldIgnoreInvalidJwt(request, e)) {
-              logger.warn(
-                s"Received JWT authentication from unknown host (${e.asInstanceOf[UnknownJwtIssuerError].issuer}), but allowing anyway")
-              Right(MaybeAtlassianHostUserRequest(None, request))
-            } else {
-              logger.debug(s"Authentication of JWT signed request failed: $e")
-              Left(Unauthorized(s"JWT validation failed: ${e.getMessage}"))
-            }
+        val expectedQsh = qshProvider match {
+          case ContextQshProvider => ContextQshProvider.qsh
+          case CanonicalHttpRequestQshProvider =>
+            CanonicalHttpRequestQshProvider.qsh(
+              credentials.canonicalHttpRequest)
         }
+        jwtAuthenticationProvider
+          .authenticate(credentials, expectedQsh)
+          .value
+          .map {
+            case Right(hostUser) =>
+              Right(MaybeAtlassianHostUserRequest(Some(hostUser), request))
+            case Left(e) =>
+              if (shouldIgnoreInvalidJwt(request, e)) {
+                logger.warn(
+                  s"Received JWT authentication from unknown host (${e.asInstanceOf[UnknownJwtIssuerError].issuer}), but allowing anyway")
+                Right(MaybeAtlassianHostUserRequest(None, request))
+              } else {
+                logger.debug(s"Authentication of JWT signed request failed: $e")
+                Left(Unauthorized(s"JWT validation failed: ${e.getMessage}"))
+              }
+          }
       case None =>
         Future.successful(Right(MaybeAtlassianHostUserRequest(None, request)))
     }
@@ -99,18 +112,46 @@ class MaybeAtlassianHostUserActionRefiner @Inject()(
   }
 }
 
+class MaybeAtlassianHostUserActionRefinerFactory @Inject()(
+    jwtAuthenticationProvider: JwtAuthenticationProvider,
+    connectProperties: AtlassianConnectProperties)(
+    implicit executionContext: ExecutionContext) {
+
+  def withQshFrom(
+      qshProvider: QshProvider): MaybeAtlassianHostUserActionRefiner =
+    MaybeAtlassianHostUserActionRefiner(jwtAuthenticationProvider,
+                                        qshProvider,
+                                        connectProperties)
+}
+
 class OptionalAtlassianHostUserAction @Inject()(
-    val parser: BodyParsers.Default,
-    jwtActionRefiner: MaybeJwtActionRefiner,
-    atlassianHostUserActionRefiner: MaybeAtlassianHostUserActionRefiner)(
-    implicit val executionContext: ExecutionContext)
-    extends ActionBuilder[MaybeAtlassianHostUserRequest, AnyContent] {
-  override def invokeBlock[A](
-      request: Request[A],
-      block: MaybeAtlassianHostUserRequest[A] => Future[Result]): Future[Result] = {
-    (jwtActionRefiner andThen atlassianHostUserActionRefiner)
-      .invokeBlock(request, block)
-  }
+    bodyParser: BodyParsers.Default,
+    jwtActionTransformer: MaybeJwtActionTransformer,
+    maybeAtlassianHostUserActionRefinerFactory: MaybeAtlassianHostUserActionRefinerFactory)(
+    implicit executionCtx: ExecutionContext) {
+
+  /**
+    * Creates an action builder that validates JWT authenticated requests and verifies the
+    * query string hash claim against the provided query string hash provider.
+    *
+    * @param qshProvider Query string hash provider that specifies what kind of QSH the qsh claim contains
+    * @return Play action for JWT validated requests
+    */
+  def withQshFrom(qshProvider: QshProvider)
+    : ActionBuilder[MaybeAtlassianHostUserRequest, AnyContent] =
+    new ActionBuilder[MaybeAtlassianHostUserRequest, AnyContent] {
+      override val parser: BodyParsers.Default = bodyParser
+      override val executionContext: ExecutionContext = executionCtx
+
+      override def invokeBlock[A](
+          request: Request[A],
+          block: MaybeAtlassianHostUserRequest[A] => Future[Result])
+        : Future[Result] = {
+        (jwtActionTransformer andThen maybeAtlassianHostUserActionRefinerFactory
+          .withQshFrom(qshProvider))
+          .invokeBlock(request, block)
+      }
+    }
 
   object Implicits {
 

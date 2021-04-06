@@ -16,7 +16,7 @@ class JwtExtractorSpec extends TestSpec {
     "trying to extract JWT from request " should {
 
       "successfully extract token from request header" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
           val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
@@ -27,7 +27,7 @@ class JwtExtractorSpec extends TestSpec {
       }
 
       "successfully extract token from request query string" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(signedJwtStringGen()) { rawJwt =>
           val jwtQueryParams = Map("jwt" -> Seq(rawJwt))
           forAll(playRequestGen(jwtQueryParams)) { request =>
@@ -39,7 +39,7 @@ class JwtExtractorSpec extends TestSpec {
       }
 
       "return None if request does not contain a token" in {
-        implicit val rawJwtNoShrink = Shrink[RawJwt](_ => Stream.empty)
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           JwtExtractor.extractJwt(request) mustBe None
         }
