@@ -6,41 +6,31 @@ import com.google.inject.Inject
 import com.nimbusds.jwt.JWTClaimsSet
 import io.circe.generic.auto._
 import io.circe.parser.decode
-import io.toolsplus.atlassian.connect.play.api.models.{
-  AppProperties,
-  AtlassianHost,
-  AtlassianHostUser,
-  DefaultAtlassianHostUser
-}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, AtlassianHostUser, DefaultAtlassianHostUser}
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.jwt.{
-  HttpRequestCanonicalizer,
-  Jwt,
-  JwtParser,
-  JwtReader
-}
+import io.toolsplus.atlassian.jwt.{Jwt, JwtParser, JwtReader}
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class JwtAuthenticationProvider @Inject()(
-    hostRepository: AtlassianHostRepository,
-    addonConfiguration: AppProperties) {
+    hostRepository: AtlassianHostRepository) {
 
   private val logger = Logger(classOf[JwtAuthenticationProvider])
 
-  def authenticate(jwtCredentials: JwtCredentials)
-    : EitherT[Future, JwtAuthenticationError, AtlassianHostUser] =
+  def authenticate(jwtCredentials: JwtCredentials, qsh: String)
+    : EitherT[Future, JwtAuthenticationError, AtlassianHostUser] = {
+
     for {
       jwt <- parseJwt(jwtCredentials.rawJwt).toEitherT[Future]
       clientKey <- extractClientKey(jwt).toEitherT[Future]
       host <- fetchAtlassianHost(clientKey)
-      verifiedToken <- verifyJwt(jwtCredentials, host).toEitherT[Future]
+      verifiedToken <- verifyJwt(jwtCredentials, host, qsh).toEitherT[Future]
     } yield
       hostUserFromContextClaim(host, verifiedToken.claims)
         .getOrElse(hostUserFromSubjectClaim(host, verifiedToken.claims))
-
+  }
   /**
     * Tries to create host user from context claim. Note that this claim
     * will be removed by Atlassian effective from 29 March, 2019.
@@ -116,10 +106,8 @@ class JwtAuthenticationProvider @Inject()(
 
   private def verifyJwt(
       jwtCredentials: JwtCredentials,
-      host: AtlassianHost): Either[JwtAuthenticationError, Jwt] = {
-    val qsh = HttpRequestCanonicalizer.computeCanonicalRequestHash(
-      jwtCredentials.canonicalHttpRequest)
-
+      host: AtlassianHost,
+      qsh: String): Either[JwtAuthenticationError, Jwt] = {
     JwtReader(host.sharedSecret)
       .readAndVerify(jwtCredentials.rawJwt, qsh)
       .leftMap { e =>
