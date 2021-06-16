@@ -40,7 +40,7 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
         }
 
       "set correct authorization and user-agent request headers" in {
-        implicit val doNotShrinkStrings = Shrink[String](_ => Stream.empty)
+        implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
         forAll(atlassianHostGen) { host =>
           val path = "foo"
           forAll(jwtCredentialsGen(host, subject = "bar")) { credentials =>

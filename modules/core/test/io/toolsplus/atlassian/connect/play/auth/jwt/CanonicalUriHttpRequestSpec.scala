@@ -1,10 +1,11 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import java.net.URI
-
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
-import org.scalacheck.Shrink
+import org.scalacheck.Gen.option
+import org.scalacheck.{Gen, Shrink}
+
+import java.net.URI
 
 class CanonicalUriHttpRequestSpec extends TestSpec {
 
@@ -12,36 +13,93 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
 
     implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
 
-    "created from standard parameters" should {
+    "method" should {
 
       "return the given method" in {
-        forAll(methodGen, rootRelativePathGen, rootRelativePathGen) {
+        forAll(methodGen, rootRelativePathGen, option(rootRelativePathGen)) {
           (method, requestPath, contextPath) =>
             CanonicalUriHttpRequest(method,
                                     URI.create(requestPath),
                                     contextPath).method mustBe method
         }
       }
+    }
 
-      "return the relative path" in {
-        forAll(methodGen, rootRelativePathWithQueryGen, rootRelativePathGen) {
-          (method, relativePath, contextPath) =>
-            val relativeUri = Url.parse(relativePath)
-            val contextUri = Url.parse(contextPath)
-            val requestUri = contextUri
-              .withPath(contextUri.path.addParts(relativeUri.path.parts))
-              .withQueryString(relativeUri.query)
-            val expectedRelativePath =
-              if (relativeUri.path.isEmpty) "/" else relativeUri.path.toString
-            CanonicalUriHttpRequest(
-              method,
-              URI.create(requestUri.toString),
-              contextPath).relativePath mustBe expectedRelativePath
+    "relativePath" should {
+
+      "return '/' for empty string path parameter" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(method, URI.create(""), None).relativePath mustBe "/"
         }
       }
 
+      "return '/' for '/' path parameter" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(method, URI.create("/"), None).relativePath mustBe "/"
+        }
+      }
+
+      "remove context path from path parameter" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(
+            method,
+            URI.create("https://example.com/jira/getsomething"),
+            Some("/jira")).relativePath mustBe "/getsomething"
+        }
+      }
+
+      "ignore context path if it is not a prefix of the path parameter" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(
+            method,
+            URI.create("https://example.com/test/getsomething"),
+            Some("/jira")).relativePath mustBe "/test/getsomething"
+        }
+      }
+
+      "ignore context path if path parameter is empty" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(
+            method,
+            URI.create("https://example.com"),
+            Some("/jira")).relativePath mustBe "/"
+        }
+      }
+
+      "return path parameter if no context path exists" in {
+        forAll(methodGen) { method =>
+          CanonicalUriHttpRequest(method,
+                                  URI.create("https://example.com/test/getsomething"),
+                                  None).relativePath mustBe "/test/getsomething"
+        }
+      }
+
+      "return the relative path" in {
+        forAll(methodGen,
+               option(Gen.oneOf("/test", "/jira", "/context", "", "/"))) {
+          (method, maybeContextPath) =>
+            forAll(rootRelativePathWithQueryGen) {
+              requestUrlWithoutContextPath =>
+                val requestUri = maybeContextPath match {
+                  case None | Some("") | Some("/") =>
+                    URI.create(requestUrlWithoutContextPath)
+                  case Some(contextPath) =>
+                    URI.create(s"$contextPath$requestUrlWithoutContextPath")
+                }
+                val expectedRelativePath =
+                  URI.create(requestUrlWithoutContextPath).getPath
+                CanonicalUriHttpRequest(method, requestUri, maybeContextPath).relativePath mustBe expectedRelativePath
+            }
+        }
+      }
+
+    }
+
+    "parameter map" should {
       "return the parameter map" in {
-        forAll(methodGen, rootRelativePathWithQueryGen, rootRelativePathGen) {
+        forAll(methodGen,
+               rootRelativePathWithQueryGen,
+               option(rootRelativePathGen)) {
           (method, requestPath, contextPath) =>
             CanonicalUriHttpRequest(method,
                                     URI.create(requestPath),
@@ -53,7 +111,5 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
       }
 
     }
-
   }
-
 }

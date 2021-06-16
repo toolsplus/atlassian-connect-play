@@ -11,7 +11,8 @@ trait PlayRequestGen extends HttpGen {
     for {
       method <- methodGen
       query <- queryStringGen
-      uri <- listOf(alphaNumStr.suchThat(!_.isEmpty))
+      n <- chooseNum(1, 5)
+      uri <- listOfN(n, alphaNumStr.suchThat(_.nonEmpty))
         .map(_.mkString("/"))
     } yield FakeRequest(method, s"$uri?$query")
 
@@ -21,7 +22,8 @@ trait PlayRequestGen extends HttpGen {
     for {
       method <- methodGen
       query <- queryStringGen
-      uri <- listOf(alphaNumStr.suchThat(!_.isEmpty))
+      n <- chooseNum(1, 5)
+      uri <- listOfN(n, alphaNumStr.suchThat(_.nonEmpty))
         .map(_.mkString("/"))
     } yield FakeRequest(method, s"$uri?$query&$additionalQuery")
   }

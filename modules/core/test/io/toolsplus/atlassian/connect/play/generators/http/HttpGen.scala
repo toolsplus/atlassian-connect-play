@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.generators.http
 
 import org.scalacheck.Gen
-import org.scalacheck.Gen.{alphaNumStr, choose, listOf, listOfN, oneOf}
+import org.scalacheck.Gen.{alphaNumStr, choose, chooseNum, listOfN, oneOf}
 
 trait HttpGen {
 
@@ -9,8 +9,10 @@ trait HttpGen {
 
   def methodGen: Gen[String] = oneOf("GET", "PUT", "POST", "DELETE", "PATCH")
 
-  def rootRelativePathGen: Gen[String] =
-    listOf(alphaNumStr.suchThat(!_.isEmpty)).map(s => s"/${s.mkString("/")}")
+  def rootRelativePathGen: Gen[String] = for {
+    n <- chooseNum(0, 5)
+    segments <- listOfN(n, alphaNumStr.suchThat(_.nonEmpty))
+  } yield s"/${segments.mkString("/")}"
 
   def rootRelativePathWithQueryGen: Gen[String] = for {
     uri <- rootRelativePathGen
@@ -19,14 +21,14 @@ trait HttpGen {
 
   def queryParam: Gen[(String, List[String])] =
     for {
-      name <- alphaNumStr.suchThat(!_.isEmpty)
-      count <- choose(1, 5)
-      values <- listOfN(count, alphaNumStr.suchThat(!_.isEmpty))
+      name <- alphaNumStr.suchThat(_.nonEmpty)
+      n <- choose(1, 3)
+      values <- listOfN(n, alphaNumStr.suchThat(_.nonEmpty))
     } yield (name, values)
 
   def queryParams: Gen[Map[String, List[String]]] =
     for {
-      count <- choose(1, 10)
+      count <- choose(1, 3)
       params <- listOfN(count, queryParam)
     } yield
       params.foldLeft(Map(): Map[String, List[String]]) { (map, param) =>
@@ -38,8 +40,7 @@ trait HttpGen {
       query <- queryParams
     } yield toQueryString(query)
 
-
-  def toQueryString(params: Map[String, Seq[String]]) =
+  def toQueryString(params: Map[String, Seq[String]]): String =
     params
       .map {
         case (key: String, values: Seq[String]) =>
