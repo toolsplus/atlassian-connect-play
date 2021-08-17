@@ -1,10 +1,8 @@
 package io.toolsplus.atlassian.connect.play.actions
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalPlayHttpRequest,
-  JwtCredentials
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt
+import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalPlayHttpRequest
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Shrink
 import play.api.http.HeaderNames
@@ -17,22 +15,22 @@ class JwtExtractorSpec extends TestSpec {
 
       "successfully extract token from request header" in {
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
-        forAll(signedJwtStringGen(), playRequestGen) { (rawJwt, request) =>
+        forAll(signedSymmetricJwtStringGen(), playRequestGen) { (rawJwt, request) =>
           val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
           val jwtRequest = request.withHeaders(jwtHeader)
           val jwtCredentials =
-            JwtCredentials(rawJwt, CanonicalPlayHttpRequest(jwtRequest))
+            jwt.JwtCredentials(rawJwt, jwt.CanonicalPlayHttpRequest(jwtRequest))
           JwtExtractor.extractJwt(jwtRequest) mustBe Some(jwtCredentials)
         }
       }
 
       "successfully extract token from request query string" in {
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
-        forAll(signedJwtStringGen()) { rawJwt =>
+        forAll(signedSymmetricJwtStringGen()) { rawJwt =>
           val jwtQueryParams = Map("jwt" -> Seq(rawJwt))
           forAll(playRequestGen(jwtQueryParams)) { request =>
             val jwtCredentials =
-              JwtCredentials(rawJwt, CanonicalPlayHttpRequest(request))
+              jwt.JwtCredentials(rawJwt, jwt.CanonicalPlayHttpRequest(request))
             JwtExtractor.extractJwt(request) mustBe Some(jwtCredentials)
           }
         }

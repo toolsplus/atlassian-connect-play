@@ -2,35 +2,37 @@ package io.toolsplus.atlassian.connect.play.controllers
 
 import com.google.inject.Inject
 import io.circe.generic.auto._
-import io.toolsplus.atlassian.connect.play.actions.{AtlassianHostUserAction, OptionalAtlassianHostUserAction}
+import io.toolsplus.atlassian.connect.play.actions.AtlassianHostUserAction
 import io.toolsplus.atlassian.connect.play.api.models.AppProperties
 import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalHttpRequestQshProvider
+import io.toolsplus.atlassian.connect.play.auth.jwt.asymmetric.AsymmetricJwtAuthenticationProvider
 import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import io.toolsplus.atlassian.connect.play.services._
 import play.api.libs.circe.Circe
-import play.api.mvc.InjectedController
+import play.api.mvc.{Action, InjectedController}
 
 import scala.concurrent.ExecutionContext
 
 /**
-  * Controller that handles the add-on install and uninstall lifecycle
+  * Controller that handles the app install and uninstall lifecycle
   * callbacks.
   */
 class LifecycleController @Inject()(
     lifecycleService: LifecycleService,
     atlassianHostUserAction: AtlassianHostUserAction,
-    optionalAtlassianHostUserAction: OptionalAtlassianHostUserAction,
-    addonProperties: AppProperties,
+    asymmetricJwtAuthenticationProvider: AsymmetricJwtAuthenticationProvider,
+    appProperties: AppProperties,
     implicit val executionContext: ExecutionContext)
     extends InjectedController
     with Circe {
 
   import atlassianHostUserAction.Implicits._
-  import optionalAtlassianHostUserAction.Implicits._
 
-  def installed = {
-    optionalAtlassianHostUserAction.withQshFrom(CanonicalHttpRequestQshProvider).async(circe.json[InstalledEvent]) {
-      implicit request =>
+  def installed: Action[InstalledEvent] = {
+    atlassianHostUserAction
+      .authenticateWith(asymmetricJwtAuthenticationProvider,
+             CanonicalHttpRequestQshProvider)
+      .async(circe.json[InstalledEvent]) { implicit request =>
         lifecycleService.installed(request.body).value map {
           case Right(_) => Ok
           case Left(e) =>
@@ -40,15 +42,16 @@ class LifecycleController @Inject()(
               case HostForbiddenError             => Forbidden
               case MissingJwtError =>
                 Unauthorized.withHeaders(
-                  WWW_AUTHENTICATE -> s"""JWT realm="${addonProperties.key}"""")
+                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}"""")
             }
         }
-    }
+      }
   }
 
-  def uninstalled =
-    atlassianHostUserAction.withQshFrom(CanonicalHttpRequestQshProvider).async(circe.json[GenericEvent]) {
-      implicit request =>
+  def uninstalled: Action[GenericEvent] =
+    atlassianHostUserAction
+      .authenticateWith(asymmetricJwtAuthenticationProvider, CanonicalHttpRequestQshProvider)
+      .async(circe.json[GenericEvent]) { implicit request =>
         lifecycleService.uninstalled(request.body).value map {
           case Right(_) => NoContent
           case Left(e) =>
@@ -58,9 +61,9 @@ class LifecycleController @Inject()(
               case HostForbiddenError             => Forbidden
               case MissingJwtError =>
                 Unauthorized.withHeaders(
-                  WWW_AUTHENTICATE -> s"""JWT realm="${addonProperties.key}"""")
+                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}"""")
             }
         }
-    }
+      }
 
 }

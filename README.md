@@ -12,7 +12,7 @@ It serves as a starter for building Atlassian Connect add-ons for JIRA and Confl
 
 ## Quick start
 
-atlassian-connect-play is published to Maven Central for Scala 2.13 and Play 2.6.x, 
+atlassian-connect-play is published to Maven Central for Scala 2.13 and Play 2.8.x, 
 so you can just add the following to your build:
 
     libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "x.x.x"
@@ -21,7 +21,7 @@ so you can just add the following to your build:
 
 You can generate a fresh project by cloning the seed project, which will provide 
 you with the basic project structure. Alternatively if you have an existing Scala 
-project, you can manually add a the framework dependency to your project to turn 
+project, you can manually add the framework dependency to your project to turn 
 it into an Atlassian Connect add-on.
 
 ### Creating a project from the seed project

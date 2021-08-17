@@ -1,7 +1,9 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt
+package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
+import io.toolsplus.atlassian.connect.play.auth.jwt
+import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalUriHttpRequest, symmetric}
 import org.scalacheck.Gen.option
 import org.scalacheck.{Gen, Shrink}
 
@@ -18,7 +20,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
       "return the given method" in {
         forAll(methodGen, rootRelativePathGen, option(rootRelativePathGen)) {
           (method, requestPath, contextPath) =>
-            CanonicalUriHttpRequest(method,
+            jwt.CanonicalUriHttpRequest(method,
                                     URI.create(requestPath),
                                     contextPath).method mustBe method
         }
@@ -35,13 +37,13 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
 
       "return '/' for '/' path parameter" in {
         forAll(methodGen) { method =>
-          CanonicalUriHttpRequest(method, URI.create("/"), None).relativePath mustBe "/"
+          jwt.CanonicalUriHttpRequest(method, URI.create("/"), None).relativePath mustBe "/"
         }
       }
 
       "remove context path from path parameter" in {
         forAll(methodGen) { method =>
-          CanonicalUriHttpRequest(
+          jwt.CanonicalUriHttpRequest(
             method,
             URI.create("https://example.com/jira/getsomething"),
             Some("/jira")).relativePath mustBe "/getsomething"
@@ -50,7 +52,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
 
       "ignore context path if it is not a prefix of the path parameter" in {
         forAll(methodGen) { method =>
-          CanonicalUriHttpRequest(
+          jwt.CanonicalUriHttpRequest(
             method,
             URI.create("https://example.com/test/getsomething"),
             Some("/jira")).relativePath mustBe "/test/getsomething"
@@ -59,7 +61,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
 
       "ignore context path if path parameter is empty" in {
         forAll(methodGen) { method =>
-          CanonicalUriHttpRequest(
+          jwt.CanonicalUriHttpRequest(
             method,
             URI.create("https://example.com"),
             Some("/jira")).relativePath mustBe "/"
@@ -68,7 +70,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
 
       "return path parameter if no context path exists" in {
         forAll(methodGen) { method =>
-          CanonicalUriHttpRequest(method,
+          jwt.CanonicalUriHttpRequest(method,
                                   URI.create("https://example.com/test/getsomething"),
                                   None).relativePath mustBe "/test/getsomething"
         }
@@ -88,7 +90,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
                 }
                 val expectedRelativePath =
                   URI.create(requestUrlWithoutContextPath).getPath
-                CanonicalUriHttpRequest(method, requestUri, maybeContextPath).relativePath mustBe expectedRelativePath
+                jwt.CanonicalUriHttpRequest(method, requestUri, maybeContextPath).relativePath mustBe expectedRelativePath
             }
         }
       }
@@ -101,7 +103,7 @@ class CanonicalUriHttpRequestSpec extends TestSpec {
                rootRelativePathWithQueryGen,
                option(rootRelativePathGen)) {
           (method, requestPath, contextPath) =>
-            CanonicalUriHttpRequest(method,
+            jwt.CanonicalUriHttpRequest(method,
                                     URI.create(requestPath),
                                     contextPath).parameterMap mustBe Url
               .parse(requestPath)

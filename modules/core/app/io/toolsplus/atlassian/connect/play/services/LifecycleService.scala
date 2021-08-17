@@ -29,74 +29,38 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     *
     * @param installedEvent         Lifecycle event holding the security context
     *                               provided by Atlassian product.
-    * @param maybeAtlassianHostUser Atlassian host user if contained in the request.
-    * @return Installed AtlassianHost instance.*/
+    * @param atlassianHostUser Atlassian host user associated with the request.
+    * @return Installed AtlassianHost instance.
+    */
   def installed(installedEvent: InstalledEvent)(
-      implicit maybeAtlassianHostUser: Option[AtlassianHostUser])
+      implicit atlassianHostUser: AtlassianHostUser)
     : EitherT[Future, LifecycleError, AtlassianHost] =
     for {
       _ <- assertLifecycleEventType(installedEvent, "installed")
         .toEitherT[Future]
-      host <- install(installedEvent, maybeAtlassianHostUser)
+      host <- install(installedEvent, atlassianHostUser)
       _ = EventBus.publish(AppInstalledEvent(host))
     } yield host
 
-  private def install(installedEvent: InstalledEvent,
-                      maybeHostUser: Option[AtlassianHostUser])
-    : EitherT[Future, LifecycleError, AtlassianHost] = {
-    val newHost = installedEventToAtlassianHost(installedEvent)
-    maybeHostUser match {
-      case Some(hostUser) =>
-        installAuthenticated(installedEvent, newHost, hostUser)
-      case None =>
-        EitherT[Future, LifecycleError, AtlassianHost](
-          installUnauthenticated(installedEvent, newHost))
-    }
-  }
-
-  /** Reinstall the given [[AtlassianHost]].
+  /** Install the given [[AtlassianHost]].
     *
-    * If the install request is authenticated assert that the client key of the
-    * authenticated host matches the client key in the lifecycle event.
+    * Assert that the client key of the authenticated host matches the client key in the lifecycle event.
     *
     * @param installedEvent Lifecycle event holding the security context
     *                       provided by Atlassian product.
-    * @param newHost        Atlassian host to be installed.
     * @param hostUser       Authenticated Atlassian host user.
-    * @return Either the newly installed [[AtlassianHost]] or a [[HostForbiddenError]]*/
-  private def installAuthenticated(installedEvent: InstalledEvent,
-                                   newHost: AtlassianHost,
-                                   hostUser: AtlassianHostUser) =
-    for {
-      _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
-      _ = logger.info(
-        s"Saved installation for previously installed host ${newHost.baseUrl} (${newHost.clientKey})")
-      host <- EitherT.right[LifecycleError](hostRepository.save(newHost))
-    } yield host
-
-  /** Install the given [[AtlassianHost]] for the first time.
-    *
-    * If the install request is not authenticated only accept it if there has
-    * been no successful installation so far. If on the other hand there is a
-    * [[AtlassianHost]] from a previous installation the request has to be
-    * JWT signed.
-    *
-    * @param installedEvent Lifecycle event holding the security context
-    *                       provided by Atlassian product.
-    * @param newHost        Atlassian host to be installed.
-    * @return Either the newly installed [[AtlassianHost]] or a [[MissingJwtError]]*/
-  private def installUnauthenticated(installedEvent: InstalledEvent,
-                                     newHost: AtlassianHost) = {
-    existingHostByLifecycleEvent(installedEvent) flatMap {
-      case Some(_) =>
-        logger.error(
-          s"Installation request was not properly authenticated, but we have already installed the add-on for host ${installedEvent.baseUrl}. Subsequent installation requests must include valid JWT. Returning 401.")
-        Future.successful(Left(MissingJwtError))
-      case None =>
-        logger.info(
-          s"Saved installation for new host ${newHost.baseUrl} (${newHost.clientKey})")
-        hostRepository.save(newHost).map(Right(_))
-    }
+    * @return Either the newly installed [[AtlassianHost]] or a [[HostForbiddenError]]
+    */
+  private def install(installedEvent: InstalledEvent,
+                      hostUser: AtlassianHostUser)
+    : EitherT[Future, LifecycleError, AtlassianHost] = {
+      val newHost = installedEventToAtlassianHost(installedEvent)
+      for {
+        _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
+        _ = logger.info(
+          s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
+        host <- EitherT.right[LifecycleError](hostRepository.save(newHost))
+      } yield host
   }
 
   /** Uninstalls the given Atlassian host by setting the installed flag in
@@ -108,7 +72,8 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     *
     * @param uninstalledEvent Lifecycle event payload.
     * @param hostUser         Atlassian host user that made the request.
-    * @return Either [[LifecycleError]] or AtlassianHost.*/
+    * @return Either [[LifecycleError]] or AtlassianHost.
+    */
   def uninstalled(uninstalledEvent: GenericEvent)(
       implicit hostUser: AtlassianHostUser)
     : EitherT[Future, LifecycleError, AtlassianHost] =

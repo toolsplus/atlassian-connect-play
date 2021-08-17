@@ -1,11 +1,10 @@
 package io.toolsplus.atlassian.connect.play.ws
 
 import java.net.URI
-
 import akka.util.ByteString
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
+import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
 import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
 import org.scalacheck.Shrink
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -43,7 +42,7 @@ class AtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
         implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
         forAll(atlassianHostGen) { host =>
           val path = "foo"
-          forAll(jwtCredentialsGen(host, subject = "bar")) { credentials =>
+          forAll(symmetricJwtCredentialsGen(host, subject = "bar")) { credentials =>
             val absoluteRequestUri =
               URI.create(s"http://localhost:$testServerPort/$path")
 

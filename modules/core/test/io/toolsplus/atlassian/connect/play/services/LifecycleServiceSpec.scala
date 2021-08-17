@@ -1,7 +1,10 @@
 package io.toolsplus.atlassian.connect.play.services
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, DefaultAtlassianHost}
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AtlassianHost,
+  DefaultAtlassianHost
+}
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.models.Implicits._
@@ -11,7 +14,7 @@ import scala.concurrent.Future
 
 class LifecycleServiceSpec extends TestSpec {
 
-  val hostRepository = mock[AtlassianHostRepository]
+  val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
 
   val lifecycleService = new LifecycleService(hostRepository)
 
@@ -20,13 +23,13 @@ class LifecycleServiceSpec extends TestSpec {
     "asked to install any security context" should {
 
       "fail if event type is not 'installed'" in {
-        forAll(installedEventGen, maybeAtlassianHostUserGen, alphaStr) {
-          (installedEvent, maybeHostUser, randomEventType) =>
+        forAll(installedEventGen, atlassianHostUserGen, alphaStr) {
+          (installedEvent, hostUser, randomEventType) =>
             val invalidInstalledEvent =
               installedEvent.copy(eventType = randomEventType)
             val result = await {
               lifecycleService
-                .installed(invalidInstalledEvent)(maybeHostUser)
+                .installed(invalidInstalledEvent)(hostUser)
                 .value
             }
             result mustBe Left(InvalidLifecycleEventTypeError)
@@ -40,10 +43,13 @@ class LifecycleServiceSpec extends TestSpec {
       "successfully install Atlassian host from security context" in {
         forAll(installedEventGen, atlassianHostUserGen) {
           (someInstalledEvent, someHostUser) =>
+            val clientKey = "fake-client-key"
             val installedEvent =
-              someInstalledEvent.copy(clientKey = "clientKeyA")
+              someInstalledEvent.copy(clientKey = clientKey)
             val hostUser = someHostUser.copy(
-              host = someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = "clientKeyA"))
+              host = someHostUser.host
+                .asInstanceOf[DefaultAtlassianHost]
+                .copy(clientKey = clientKey))
             val newHost = installedEventToAtlassianHost(installedEvent)
 
             (hostRepository
@@ -51,7 +57,7 @@ class LifecycleServiceSpec extends TestSpec {
               .successful(newHost)
 
             val result = await {
-              lifecycleService.installed(installedEvent)(Some(hostUser)).value
+              lifecycleService.installed(installedEvent)(hostUser).value
             }
             result mustBe Right(newHost)
         }
@@ -63,53 +69,17 @@ class LifecycleServiceSpec extends TestSpec {
             val clientKeyMismatchEvent =
               installedEvent.copy(clientKey = "clientKeyA")
             val clientKeyMismatchHostUser =
-              hostUser.copy(host = hostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = "clientKeyB"))
+              hostUser.copy(
+                host = hostUser.host
+                  .asInstanceOf[DefaultAtlassianHost]
+                  .copy(clientKey = "clientKeyB"))
 
             val result = await {
               lifecycleService
-                .installed(clientKeyMismatchEvent)(
-                  Some(clientKeyMismatchHostUser))
+                .installed(clientKeyMismatchEvent)(clientKeyMismatchHostUser)
                 .value
             }
             result mustBe Left(HostForbiddenError)
-        }
-      }
-
-    }
-
-    "asked to install a security context from an unauthenticated request" should {
-
-      "successfully install Atlassian host from security context" in {
-        forAll(installedEventGen) { installedEvent =>
-          val newHost = installedEventToAtlassianHost(installedEvent)
-
-          (hostRepository
-            .findByClientKey(_: ClientKey)) expects installedEvent.clientKey returning Future
-            .successful(None)
-
-          (hostRepository
-            .save(_: AtlassianHost)) expects newHost returning Future
-            .successful(newHost)
-
-          val result = await {
-            lifecycleService.installed(installedEvent)(None).value
-          }
-          result mustBe Right(newHost)
-        }
-      }
-
-      "fail if there is an existing host for the given 'installed' event" in {
-        forAll(installedEventGen, atlassianHostGen) { (installedEvent, host) =>
-          val hostForEvent = host.copy(clientKey = installedEvent.clientKey)
-
-          (hostRepository
-            .findByClientKey(_: ClientKey)) expects installedEvent.clientKey returning Future
-            .successful(Some(hostForEvent))
-
-          val result = await {
-            lifecycleService.installed(installedEvent)(None).value
-          }
-          result mustBe Left(MissingJwtError)
         }
       }
 
@@ -124,7 +94,9 @@ class LifecycleServiceSpec extends TestSpec {
             val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
                                                      clientKey = clientKey)
             val installedHost =
-              someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = clientKey, installed = true)
+              someHostUser.host
+                .asInstanceOf[DefaultAtlassianHost]
+                .copy(clientKey = clientKey, installed = true)
             val uninstalledHost = installedHost.copy(installed = false)
             val hostUser = someHostUser.copy(host = installedHost)
 
@@ -150,7 +122,9 @@ class LifecycleServiceSpec extends TestSpec {
             val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
                                                      clientKey = clientKey)
             val installedHost =
-              someHostUser.host.asInstanceOf[DefaultAtlassianHost].copy(clientKey = clientKey, installed = true)
+              someHostUser.host
+                .asInstanceOf[DefaultAtlassianHost]
+                .copy(clientKey = clientKey, installed = true)
             val hostUser = someHostUser.copy(host = installedHost)
 
             (hostRepository

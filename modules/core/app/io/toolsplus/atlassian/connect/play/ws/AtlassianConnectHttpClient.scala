@@ -1,20 +1,18 @@
 package io.toolsplus.atlassian.connect.play.ws
 
 import java.net.URI
-
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
+import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
 import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
+
 import javax.inject.Inject
 import play.api.libs.ws.{WSClient, WSRequest, WSSignatureCalculator}
 
 /**
   * A helper class for obtaining pre-configured WSRequests to make authenticated requests to Atlassian hosts.
   *
-  * ==JWT==
-  *
-  * To make requests using JWT, the add-on must specify the authentication type `jwt` in its add-on descriptor.
+  * To make requests using JWT, the app must specify the authentication type `jwt` in its app descriptor.
   *
   * To obtain a WSRequest using JWT authentication, use authenticatedAsAddon():
   * {{{
