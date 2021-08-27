@@ -1,9 +1,9 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt
 
-import java.net.URI
-
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.jwt.api.CanonicalHttpRequest
+
+import java.net.URI
 
 /**
   * HTTP request that can be signed for use as a JWT claim.
@@ -41,7 +41,8 @@ case class CanonicalUriHttpRequest(private val httpMethod: String,
             if (path.startsWith(contextPathToRemove))
               path.substring(contextPathToRemove.length)
             else path)
-        .map(path => if (path.endsWith("/") && path != "/") path.dropRight(1) else path)
+        .map(path =>
+          if (path.endsWith("/") && path != "/") path.dropRight(1) else path)
         .getOrElse("/")
   }
 

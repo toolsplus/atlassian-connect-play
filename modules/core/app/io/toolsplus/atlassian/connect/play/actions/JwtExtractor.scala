@@ -1,9 +1,7 @@
 package io.toolsplus.atlassian.connect.play.actions
 
-import io.toolsplus.atlassian.connect.play.auth.jwt.{
-  CanonicalPlayHttpRequest,
-  JwtCredentials
-}
+import io.toolsplus.atlassian.connect.play.auth.jwt
+import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, JwtCredentials, symmetric}
 import play.api.http.HeaderNames
 import play.api.mvc.Request
 
@@ -11,7 +9,7 @@ object JwtExtractor {
   def extractJwt[A](request: Request[A]): Option[JwtCredentials] = {
     extractJwtFromHeader(request)
       .orElse(extractJwtFromParameter(request))
-      .map(JwtCredentials(_, CanonicalPlayHttpRequest(request)))
+      .map(jwt.JwtCredentials(_, jwt.CanonicalPlayHttpRequest(request)))
   }
 
   private def extractJwtFromHeader[A](request: Request[A]): Option[String] = {

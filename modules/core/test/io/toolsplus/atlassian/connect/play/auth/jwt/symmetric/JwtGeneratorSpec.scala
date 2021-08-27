@@ -1,12 +1,14 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt
+package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator._
+import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalUriHttpRequest
+import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator.{BaseUrlMismatchError, InvalidSecretKey, JwtGeneratorError, RelativeUriError}
 import io.toolsplus.atlassian.connect.play.models.{AtlassianConnectProperties, PlayAddonProperties}
 import io.toolsplus.atlassian.jwt._
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
+import io.toolsplus.atlassian.jwt.symmetric.SymmetricJwtReader
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 import org.scalatest.Assertion
@@ -39,7 +41,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
             jwtGenerator.createJwtToken(method, absoluteUri, host) match {
               case Right(_) => succeed
-              case Left(_)  => fail
+              case Left(_)  => fail()
             }
         }
       }
@@ -78,11 +80,12 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
                   CanonicalUriHttpRequest(method, absoluteUri, hostContextPath)
                 val qsh =
                   HttpRequestCanonicalizer.computeCanonicalRequestHash(request)
-                JwtReader(host.sharedSecret).readAndVerify(rawJwt, qsh) match {
+                SymmetricJwtReader(host.sharedSecret)
+                  .readAndVerify(rawJwt, qsh) match {
                   case Right(_) => succeed
                   case Left(e)  => fail(e)
                 }
-              case Left(_) => fail
+              case Left(_) => fail()
             }
         }
       }
@@ -109,8 +112,8 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "fail if secret key is less than 256 bits" in forAll(methodGen,
-        rootRelativePathGen,
-        atlassianHostGen) {
+                                                           rootRelativePathGen,
+                                                           atlassianHostGen) {
         (method, relativePath, randomHost) =>
           val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
           val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
@@ -148,7 +151,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
           case Right(jwt) => assertion(jwt)
           case Left(e)    => fail(e)
         }
-      case Left(_) => fail
+      case Left(_) => fail()
     }
   }
 

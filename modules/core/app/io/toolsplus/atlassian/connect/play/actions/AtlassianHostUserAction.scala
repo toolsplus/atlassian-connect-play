@@ -37,7 +37,7 @@ case class AtlassianHostUserRequest[A](hostUser: AtlassianHostUser,
     extends WrappedRequest[A](request)
 
 case class AtlassianHostUserActionRefiner(
-    jwtAuthenticationProvider: JwtAuthenticationProvider,
+    jwtAuthenticationProvider: AbstractJwtAuthenticationProvider,
     qshProvider: QshProvider)(implicit val executionContext: ExecutionContext)
     extends ActionRefiner[JwtRequest, AtlassianHostUserRequest] {
   override def refine[A](request: JwtRequest[A])
@@ -56,29 +56,21 @@ case class AtlassianHostUserActionRefiner(
   }
 }
 
-class AtlassianHostUserActionRefinerFactory @Inject()(
-    jwtAuthenticationProvider: JwtAuthenticationProvider)(
-    implicit executionContext: ExecutionContext) {
-
-  def withQshFrom(qshProvider: QshProvider)
-    : AtlassianHostUserActionRefiner =
-    AtlassianHostUserActionRefiner(jwtAuthenticationProvider, qshProvider)
-}
-
 class AtlassianHostUserAction @Inject()(
     bodyParser: BodyParsers.Default,
-    jwtActionRefiner: JwtActionRefiner,
-    atlassianHostUserActionRefinerFactory: AtlassianHostUserActionRefinerFactory)(
+    jwtActionRefiner: JwtActionRefiner)(
     implicit executionCtx: ExecutionContext) {
 
   /**
-    * Creates an action builder that validates JWT authenticated requests and verifies the
-    * query string hash claim against the provided query string hash provider.
+    * Creates an action builder that validates JWT authenticated requests. Callers must specify if they
+    * expect symmetrically or asymmetrically signed JWTs and how the query string hash claim should be verified.
     *
+    * @param jwtAuthenticationProvider JWT authentication provider that specifies if a symmetrically or asymmetrically
+    *                                  signed JWT is expected
     * @param qshProvider Query string hash provider that specifies what kind of QSH the qsh claim contains
     * @return Play action for JWT validated requests
     */
-  def withQshFrom(qshProvider: QshProvider)
+  def authenticateWith(jwtAuthenticationProvider: AbstractJwtAuthenticationProvider, qshProvider: QshProvider)
     : ActionBuilder[AtlassianHostUserRequest, AnyContent] =
     new ActionBuilder[AtlassianHostUserRequest, AnyContent] {
       override val parser: BodyParsers.Default = bodyParser
@@ -87,8 +79,7 @@ class AtlassianHostUserAction @Inject()(
           request: Request[A],
           block: AtlassianHostUserRequest[A] => Future[Result])
         : Future[Result] = {
-        (jwtActionRefiner andThen atlassianHostUserActionRefinerFactory
-          .withQshFrom(qshProvider))
+        (jwtActionRefiner andThen AtlassianHostUserActionRefiner(jwtAuthenticationProvider, qshProvider))
           .invokeBlock(request, block)
       }
     }

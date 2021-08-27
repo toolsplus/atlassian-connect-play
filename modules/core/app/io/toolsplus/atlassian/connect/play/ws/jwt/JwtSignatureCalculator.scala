@@ -1,9 +1,8 @@
 package io.toolsplus.atlassian.connect.play.ws.jwt
 
 import java.net.URI
-
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
-import io.toolsplus.atlassian.connect.play.auth.jwt.JwtGenerator
+import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
 import play.api.http.HeaderNames.{AUTHORIZATION, USER_AGENT}
 import play.api.libs.ws.WSSignatureCalculator
 import play.shaded.ahc.org.asynchttpclient.{Request, RequestBuilderBase, SignatureCalculator}

@@ -20,17 +20,17 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.1.8"
+  val atlassianJwt = "0.2.0"
   val cats = "2.1.1"
   val circe = "0.13.0"
   val playCirce = "2812.0"
   val scalaUri = "2.2.2"
-  val scalaTest = "3.1.2"
+  val scalaTest = "3.2.9"
   val scalaTestPlusPlay = "5.1.0"
-  val scalaTestPlusScalaCheck = "3.1.2.0"
-  val scalaMock = "4.4.0"
-  val scalaCheck = "1.14.3"
-  val akkaTestKit = "2.6.5"
+  val scalaTestPlusScalaCheck = "3.2.9.0"
+  val scalaMock = "5.1.0"
+  val scalaCheck = "1.15.4"
+  val akkaTestKit = "2.6.14"
 }
 
 object Library {
@@ -43,7 +43,7 @@ object Library {
   val circePlay = "com.dripower" %% "play-circe" % Version.playCirce
   val scalaUri = "io.lemonlabs" %% "scala-uri" % Version.scalaUri
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
-  val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % Version.scalaTestPlusScalaCheck
+  val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % Version.scalaTestPlusScalaCheck
   val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck

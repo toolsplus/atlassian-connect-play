@@ -1,6 +1,8 @@
-package io.toolsplus.atlassian.connect.play.auth.jwt
+package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
 import io.toolsplus.atlassian.connect.play.TestSpec
+import io.toolsplus.atlassian.connect.play.auth.jwt
+import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, symmetric}
 
 class CanonicalPlayHttpRequestSpec extends TestSpec {
 
@@ -10,7 +12,7 @@ class CanonicalPlayHttpRequestSpec extends TestSpec {
 
       "return the request method" in {
         forAll(playRequestGen) { playRequest =>
-          CanonicalPlayHttpRequest(playRequest).method mustBe playRequest.method
+          jwt.CanonicalPlayHttpRequest(playRequest).method mustBe playRequest.method
         }
       }
 
@@ -22,7 +24,7 @@ class CanonicalPlayHttpRequestSpec extends TestSpec {
 
       "return the request parameter map" in {
         forAll(playRequestGen) { playRequest =>
-          CanonicalPlayHttpRequest(playRequest).parameterMap mustBe playRequest.queryString
+          jwt.CanonicalPlayHttpRequest(playRequest).parameterMap mustBe playRequest.queryString
         }
       }
 
