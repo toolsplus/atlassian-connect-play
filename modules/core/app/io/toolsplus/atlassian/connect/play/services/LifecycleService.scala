@@ -29,38 +29,28 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     *
     * @param installedEvent         Lifecycle event holding the security context
     *                               provided by Atlassian product.
-    * @param atlassianHostUser Atlassian host user associated with the request.
     * @return Installed AtlassianHost instance.
     */
-  def installed(installedEvent: InstalledEvent)(
-      implicit atlassianHostUser: AtlassianHostUser)
+  def installed(installedEvent: InstalledEvent)
     : EitherT[Future, LifecycleError, AtlassianHost] =
     for {
       _ <- assertLifecycleEventType(installedEvent, "installed")
         .toEitherT[Future]
-      host <- install(installedEvent, atlassianHostUser)
+      host <- EitherT.right(install(installedEvent))
       _ = EventBus.publish(AppInstalledEvent(host))
     } yield host
 
-  /** Install the given [[AtlassianHost]].
-    *
-    * Assert that the client key of the authenticated host matches the client key in the lifecycle event.
+  /** Extracts the Atlassian host from the installed event and saves it to the database.
     *
     * @param installedEvent Lifecycle event holding the security context
     *                       provided by Atlassian product.
-    * @param hostUser       Authenticated Atlassian host user.
     * @return Either the newly installed [[AtlassianHost]] or a [[HostForbiddenError]]
     */
-  private def install(installedEvent: InstalledEvent,
-                      hostUser: AtlassianHostUser)
-    : EitherT[Future, LifecycleError, AtlassianHost] = {
-      val newHost = installedEventToAtlassianHost(installedEvent)
-      for {
-        _ <- assertHostAuthorized(installedEvent, hostUser).toEitherT[Future]
-        _ = logger.info(
-          s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
-        host <- EitherT.right[LifecycleError](hostRepository.save(newHost))
-      } yield host
+  private def install(installedEvent: InstalledEvent): Future[AtlassianHost] = {
+    val newHost = installedEventToAtlassianHost(installedEvent)
+    logger.info(
+      s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
+    hostRepository.save(newHost)
   }
 
   /** Uninstalls the given Atlassian host by setting the installed flag in
@@ -71,22 +61,29 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     * treated as successful uninstallation as the host is not there anyways.
     *
     * @param uninstalledEvent Lifecycle event payload.
-    * @param hostUser         Atlassian host user that made the request.
+    * @param maybeHostUser    Installed Atlassian host user if one has been found.
     * @return Either [[LifecycleError]] or AtlassianHost.
     */
-  def uninstalled(uninstalledEvent: GenericEvent)(
-      implicit hostUser: AtlassianHostUser)
+  def uninstalled(uninstalledEvent: GenericEvent,
+                  maybeHostUser: Option[AtlassianHostUser])
     : EitherT[Future, LifecycleError, AtlassianHost] =
     for {
       _ <- assertLifecycleEventType(uninstalledEvent, "uninstalled")
         .toEitherT[Future]
-      _ <- assertHostAuthorized(uninstalledEvent, hostUser).toEitherT[Future]
-      maybeExistingHost <- EitherT
-        .right[LifecycleError](existingHostByLifecycleEvent(uninstalledEvent))
-      result <- uninstall(uninstalledEvent, maybeExistingHost)
-      _ = EventBus.publish(AppUninstalledEvent(hostUser.host))
-    } yield result
+      host <- uninstall(uninstalledEvent, maybeHostUser.map(_.host))
+      _ = EventBus.publish(AppUninstalledEvent(host))
+    } yield host
 
+  /**
+    * Uninstalls the Atlassian host indicated by the uninstall event payload.
+    *
+    * Note that if there is an installed host record found, the host client key in the given payload will be verified
+    * against the installed host client key. Uninstallation will only succeed if the two client key values match.
+    *
+    * @param uninstalledEvent Uninstall event payload
+    * @param maybeExistingHost Atlassian host associated with the JWT request if one has been found
+    * @return
+    */
   private def uninstall(uninstalledEvent: GenericEvent,
                         maybeExistingHost: Option[AtlassianHost])
     : EitherT[Future, LifecycleError, AtlassianHost] = {
@@ -94,18 +91,14 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       case Some(host) =>
         logger.info(
           s"Saved uninstallation for host ${host.baseUrl} (${host.clientKey})")
-        EitherT.right(hostRepository.save(host.uninstalled))
+        assertHostAuthorized(uninstalledEvent, host)
+          .toEitherT[Future]
+          .flatMap(host => EitherT.right(hostRepository.save(host.uninstalled)))
       case None =>
         logger.error(
-          s"Received authenticated uninstall request but no installation for host ${uninstalledEvent.baseUrl} has been found. Assume the add-on has been removed.")
-        EitherT[Future, LifecycleError, AtlassianHost](
-          Future.successful(Left(MissingAtlassianHostError)))
+          s"Received authenticated uninstall request but no installation for host ${uninstalledEvent.baseUrl} has been found. Assume the app has been removed.")
+        EitherT.left(Future.successful[LifecycleError](MissingAtlassianHostError))
     }
-  }
-
-  private def existingHostByLifecycleEvent(
-      lifecycleEvent: LifecycleEvent): Future[Option[AtlassianHost]] = {
-    hostRepository.findByClientKey(lifecycleEvent.clientKey)
   }
 
   private def assertLifecycleEventType(
@@ -119,14 +112,14 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     } else Right(lifecycleEvent)
   }
 
-  private def assertHostAuthorized(lifecycleEvent: LifecycleEvent,
-                                   hostUser: AtlassianHostUser)
-    : Either[LifecycleError, AtlassianHostUser] = {
-    if (hostUser.host.clientKey != lifecycleEvent.clientKey) {
+  private def assertHostAuthorized(
+      lifecycleEvent: LifecycleEvent,
+      host: AtlassianHost): Either[LifecycleError, AtlassianHost] = {
+    if (host.clientKey != lifecycleEvent.clientKey) {
       logger.error(
-        s"Request was authenticated for host ${hostUser.host.clientKey}, but the host in the body of the request is ${lifecycleEvent.clientKey}. Returning 403.")
+        s"Request was authenticated for host ${host.clientKey}, but the host in the body of the request is ${lifecycleEvent.clientKey}. Returning 403.")
       Left(HostForbiddenError)
-    } else Right(hostUser)
+    } else Right(host)
   }
 
 }

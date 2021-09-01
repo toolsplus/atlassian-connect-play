@@ -21,11 +21,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
+/**
+  * Authentication provider that verifies asymmetrically signed JWTs.
+  *
+  * Note that for this authentication to succeed the Atlassian host indicated by the clientKey in the JWT does not
+  * have to be installed. As a result this authentication provider may or may not return the installed Atlassian host
+  * record.
+  */
 class AsymmetricJwtAuthenticationProvider @Inject()(
     appProperties: AppProperties,
     publicKeyProvider: PublicKeyProvider,
     hostRepository: AtlassianHostRepository)
-    extends AbstractJwtAuthenticationProvider(hostRepository) {
+    extends AbstractJwtAuthenticationProvider[Option](hostRepository) {
 
   private val logger = Logger(classOf[AsymmetricJwtAuthenticationProvider])
 
@@ -34,11 +41,11 @@ class AsymmetricJwtAuthenticationProvider @Inject()(
     *
     * @param jwtCredentials Untrusted JWT credentials
     * @param qsh Query string hash computed from the request the JWT credentials were attached to
-    * @return Atlassian host user associated with the given JWT credentials, or an authentication error.
+    * @return Atlassian host user associated with the given JWT credentials if it is installed, or an authentication error.
     * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#verifying-a-asymmetric-jwt-token-for-install-callbacks
     */
   override def authenticate(jwtCredentials: JwtCredentials, qsh: String)
-    : EitherT[Future, JwtAuthenticationError, AtlassianHostUser] = {
+    : EitherT[Future, JwtAuthenticationError, Option[AtlassianHostUser]] = {
 
     for {
       jwt <- parseJwt(jwtCredentials.rawJwt).toEitherT[Future]
@@ -48,8 +55,8 @@ class AsymmetricJwtAuthenticationProvider @Inject()(
       verifiedToken <- verifyJwt(jwtCredentials, publicKey, qsh)
         .toEitherT[Future]
       clientKey <- extractClientKey(jwt).toEitherT[Future]
-      host <- fetchAtlassianHost(clientKey)
-    } yield hostUserFromSubjectClaim(host, verifiedToken.claims)
+      result <- maybeHostUser(clientKey, verifiedToken)
+    } yield result
   }
 
   private def extractPublicKeyId(
@@ -99,5 +106,20 @@ class AsymmetricJwtAuthenticationProvider @Inject()(
         InvalidJwtError(e.getMessage)
       }
   }
+
+  /**
+    * Tries to find an Atlassian host for the given client key and constructs a
+    * host user record if a host has been found.
+    *
+    * @param clientKey Client key of the Atlassian host to find
+    * @param verifiedToken Verified JWT claims to extract the subject claim from (subject claim == user account id)
+    * @return Atlassian host user if one has been found
+    */
+  private def maybeHostUser(clientKey: String, verifiedToken: Jwt)
+    : EitherT[Future, JwtAuthenticationError, Option[AtlassianHostUser]] =
+    fetchAtlassianHost(clientKey).transform {
+      case Right(host) => Right(Some(hostUserFromSubjectClaim(host, verifiedToken.claims)))
+      case Left(_) => Right(None)
+    }
 
 }

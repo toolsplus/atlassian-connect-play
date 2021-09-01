@@ -1,5 +1,6 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
+import cats.Id
 import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
@@ -21,9 +22,15 @@ import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+/**
+  * Authentication provider that verifies symmetrically signed JWTs.
+  *
+  * Note that for this authentication to succeed the Atlassian host indicated by the clientKey in the JWT must be
+  * installed (be present in the database).
+  */
 class SymmetricJwtAuthenticationProvider @Inject()(
     hostRepository: AtlassianHostRepository)
-    extends AbstractJwtAuthenticationProvider(hostRepository) {
+    extends AbstractJwtAuthenticationProvider[Id](hostRepository) {
 
   private val logger = Logger(classOf[SymmetricJwtAuthenticationProvider])
 
@@ -36,12 +43,16 @@ class SymmetricJwtAuthenticationProvider @Inject()(
     * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
     */
   override def authenticate(jwtCredentials: JwtCredentials, qsh: String)
-    : EitherT[Future, JwtAuthenticationError, AtlassianHostUser] = {
+    : EitherT[Future, JwtAuthenticationError, Id[AtlassianHostUser]] = {
 
     for {
       jwt <- parseJwt(jwtCredentials.rawJwt).toEitherT[Future]
       clientKey <- extractClientKey(jwt).toEitherT[Future]
-      host <- fetchAtlassianHost(clientKey)
+      host <- fetchAtlassianHost(clientKey).leftMap(e => {
+        logger.error(
+          s"Could not find an installed host for the provided client key: $clientKey")
+        e
+      })
       verifiedToken <- verifyJwt(jwtCredentials, host, qsh).toEitherT[Future]
     } yield hostUserFromSubjectClaim(host, verifiedToken.claims)
   }
