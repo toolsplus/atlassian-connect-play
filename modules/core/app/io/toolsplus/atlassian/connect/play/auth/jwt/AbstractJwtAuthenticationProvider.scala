@@ -10,12 +10,14 @@ import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
-abstract class AbstractJwtAuthenticationProvider(hostRepository: AtlassianHostRepository)(implicit executionContext: ExecutionContext) {
+abstract class AbstractJwtAuthenticationProvider[F[_]](
+    hostRepository: AtlassianHostRepository)(
+    implicit executionContext: ExecutionContext) {
 
-  private val logger = Logger(classOf[AbstractJwtAuthenticationProvider])
+  private val logger = Logger(classOf[AbstractJwtAuthenticationProvider[F]])
 
   def authenticate(jwtCredentials: JwtCredentials, qsh: String)
-  : EitherT[Future, JwtAuthenticationError, AtlassianHostUser]
+    : EitherT[Future, JwtAuthenticationError, F[AtlassianHostUser]]
 
   protected def parseJwt(rawJwt: String): Either[JwtAuthenticationError, Jwt] =
     JwtParser.parse(rawJwt).leftMap { e =>
@@ -30,12 +32,13 @@ abstract class AbstractJwtAuthenticationProvider(hostRepository: AtlassianHostRe
     * @return Client key or authentication error if no issue claim could be found
     */
   protected def extractClientKey(
-                                jwt: Jwt): Either[JwtAuthenticationError, String] = {
+      jwt: Jwt): Either[JwtAuthenticationError, String] = {
     Option(jwt.claims.getIssuer) match {
       case Some(clientKeyClaim) => Right(clientKeyClaim)
       case None =>
         Left(
-          JwtBadCredentialsError("Failed to extract client key due to missing issuer claim")
+          JwtBadCredentialsError(
+            "Failed to extract client key due to missing issuer claim")
         )
     }
   }
@@ -48,21 +51,18 @@ abstract class AbstractJwtAuthenticationProvider(hostRepository: AtlassianHostRe
     * @return Atlassian host user created from subject claim.
     */
   protected def hostUserFromSubjectClaim(
-                                        host: AtlassianHost,
-                                        verifiedClaims: JWTClaimsSet
-                                      ): AtlassianHostUser = {
+      host: AtlassianHost,
+      verifiedClaims: JWTClaimsSet
+  ): AtlassianHostUser = {
     DefaultAtlassianHostUser(host, Option(verifiedClaims.getSubject))
   }
 
   protected def fetchAtlassianHost(clientKey: String)
-  : EitherT[Future, JwtAuthenticationError, AtlassianHost] = {
+    : EitherT[Future, JwtAuthenticationError, AtlassianHost] = {
     EitherT(
       hostRepository.findByClientKey(clientKey).map {
         case Some(host) => Right(host)
-        case None =>
-          logger.error(
-            s"Could not find an installed host for the provided client key: $clientKey")
-          Left(UnknownJwtIssuerError(clientKey))
+        case None       => Left(UnknownJwtIssuerError(clientKey))
       }
     )
   }

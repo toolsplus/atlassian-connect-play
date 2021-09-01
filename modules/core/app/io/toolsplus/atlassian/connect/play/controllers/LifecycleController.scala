@@ -2,10 +2,9 @@ package io.toolsplus.atlassian.connect.play.controllers
 
 import com.google.inject.Inject
 import io.circe.generic.auto._
-import io.toolsplus.atlassian.connect.play.actions.AtlassianHostUserAction
+import io.toolsplus.atlassian.connect.play.actions.asymmetric.AsymmetricallySignedAtlassianHostUserAction
 import io.toolsplus.atlassian.connect.play.api.models.AppProperties
 import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalHttpRequestQshProvider
-import io.toolsplus.atlassian.connect.play.auth.jwt.asymmetric.AsymmetricJwtAuthenticationProvider
 import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import io.toolsplus.atlassian.connect.play.services._
 import play.api.libs.circe.Circe
@@ -19,19 +18,15 @@ import scala.concurrent.ExecutionContext
   */
 class LifecycleController @Inject()(
     lifecycleService: LifecycleService,
-    atlassianHostUserAction: AtlassianHostUserAction,
-    asymmetricJwtAuthenticationProvider: AsymmetricJwtAuthenticationProvider,
+    asymmetricallySignedAtlassianHostUserAction: AsymmetricallySignedAtlassianHostUserAction,
     appProperties: AppProperties,
     implicit val executionContext: ExecutionContext)
     extends InjectedController
     with Circe {
 
-  import atlassianHostUserAction.Implicits._
-
   def installed: Action[InstalledEvent] = {
-    atlassianHostUserAction
-      .authenticateWith(asymmetricJwtAuthenticationProvider,
-             CanonicalHttpRequestQshProvider)
+    asymmetricallySignedAtlassianHostUserAction
+      .authenticateWith(CanonicalHttpRequestQshProvider)
       .async(circe.json[InstalledEvent]) { implicit request =>
         lifecycleService.installed(request.body).value map {
           case Right(_) => Ok
@@ -49,10 +44,10 @@ class LifecycleController @Inject()(
   }
 
   def uninstalled: Action[GenericEvent] =
-    atlassianHostUserAction
-      .authenticateWith(asymmetricJwtAuthenticationProvider, CanonicalHttpRequestQshProvider)
+    asymmetricallySignedAtlassianHostUserAction
+      .authenticateWith(CanonicalHttpRequestQshProvider)
       .async(circe.json[GenericEvent]) { implicit request =>
-        lifecycleService.uninstalled(request.body).value map {
+        lifecycleService.uninstalled(request.body, request.hostUser).value map {
           case Right(_) => NoContent
           case Left(e) =>
             e match {

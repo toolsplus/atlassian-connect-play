@@ -47,7 +47,7 @@ class AsymmetricJwtAuthenticationProviderSpec
     "authenticating JWT credentials" should {
 
       "fail if credentials cannot be parsed" in {
-        forAll(symmetricJwtCredentialsGen()) { credentials =>
+        forAll(asymmetricJwtCredentialsGen(keyId, privateKey, Seq.empty)) { credentials =>
           val result = await {
             jwtAuthenticationProvider
               .authenticate(credentials.copy(rawJwt = "bogus"), "fake-qsh")
@@ -143,7 +143,7 @@ class AsymmetricJwtAuthenticationProviderSpec
         }
       }
 
-      "fail if there is no Atlassian host for the JWT issuer claim value (client key)" in {
+      "succeed if there is no Atlassian host for the JWT issuer claim value (client key)" in {
         val issuerClaim = "fake-issuer-claim"
         forAll(
           asymmetricJwtCredentialsGen(keyId,
@@ -165,7 +165,7 @@ class AsymmetricJwtAuthenticationProviderSpec
                 .value
             }
 
-            result.left.value mustBe a[UnknownJwtIssuerError]
+            result.value mustBe None
         }
       }
 
@@ -191,7 +191,7 @@ class AsymmetricJwtAuthenticationProviderSpec
                 .value
             }
 
-            result mustBe Right(
+            result.value mustBe Some(
               DefaultAtlassianHostUser(aHost, Option(subject)))
           }
         }
