@@ -20,17 +20,17 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.2.0"
-  val cats = "2.1.1"
-  val circe = "0.13.0"
-  val playCirce = "2812.0"
-  val scalaUri = "2.2.2"
+  val atlassianJwt = "0.2.1"
+  val cats = "2.9.0"
+  val circe = "0.14.5"
+  val playCirce = "2814.4"
+  val scalaUri = "4.0.3"
   val scalaTest = "3.2.9"
   val scalaTestPlusPlay = "5.1.0"
   val scalaTestPlusScalaCheck = "3.2.9.0"
   val scalaMock = "5.1.0"
   val scalaCheck = "1.15.4"
-  val akkaTestKit = "2.6.14"
+  val akkaTestKit = "2.6.21"
 }
 
 object Library {
