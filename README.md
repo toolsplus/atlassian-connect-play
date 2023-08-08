@@ -1,7 +1,7 @@
 Atlassian Connect Play
 ======================
 
-[![Build Status](https://github.com/toolsplus/atlassian-connect-play/workflows/CI/badge.svg)](https://github.com/toolsplus/atlassian-connect-play/actions)
+[![Continuous integration](https://github.com/toolsplus/atlassian-connect-play/actions/workflows/ci.yml/badge.svg)](https://github.com/toolsplus/atlassian-connect-play/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/toolsplus/atlassian-connect-play/branch/master/graph/badge.svg)](https://codecov.io/gh/toolsplus/atlassian-connect-play)
 [![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.13.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.13)
 
