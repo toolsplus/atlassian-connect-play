@@ -18,15 +18,16 @@ trait LifecycleEventGen extends SecurityContextGen {
         eventType,
         securityContext.key,
         securityContext.clientKey,
-        securityContext.publicKey,
         securityContext.oauthClientId,
         securityContext.sharedSecret,
-        securityContext.serverVersion,
-        securityContext.pluginsVersion,
         securityContext.baseUrl,
+        securityContext.displayUrl,
+        securityContext.displayUrlServicedeskHelpCenter,
         securityContext.productType,
         securityContext.description,
-        securityContext.serviceEntitlementNumber
+        securityContext.serviceEntitlementNumber,
+        securityContext.entitlementId,
+        securityContext.entitlementNumber
       )
 
   def genericEventTypeGen: Gen[String] =
@@ -41,14 +42,15 @@ trait LifecycleEventGen extends SecurityContextGen {
         eventType,
         securityContext.key,
         securityContext.clientKey,
-        securityContext.publicKey,
         securityContext.oauthClientId,
-        securityContext.serverVersion,
-        securityContext.pluginsVersion,
         securityContext.baseUrl,
+        securityContext.displayUrl,
+        securityContext.displayUrlServicedeskHelpCenter,
         securityContext.productType,
         securityContext.description,
-        securityContext.serviceEntitlementNumber
+        securityContext.serviceEntitlementNumber,
+        securityContext.entitlementId,
+        securityContext.entitlementNumber
       )
 
 }

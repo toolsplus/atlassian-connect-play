@@ -14,15 +14,16 @@ trait AtlassianHostGen extends SecurityContextGen {
       DefaultAtlassianHost(
         securityContext.clientKey,
         securityContext.key,
-        securityContext.publicKey,
         securityContext.oauthClientId,
         securityContext.sharedSecret,
-        securityContext.serverVersion,
-        securityContext.pluginsVersion,
         securityContext.baseUrl,
+        securityContext.displayUrl,
+        securityContext.displayUrlServicedeskHelpCenter,
         securityContext.productType,
         securityContext.description,
         securityContext.serviceEntitlementNumber,
+        securityContext.entitlementId,
+        securityContext.entitlementNumber,
         installed
       )
     }

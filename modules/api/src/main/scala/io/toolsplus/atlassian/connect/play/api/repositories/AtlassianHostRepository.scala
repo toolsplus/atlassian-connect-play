@@ -20,13 +20,6 @@ trait AtlassianHostRepository {
     */
   def findByClientKey(clientKey: ClientKey): Future[Option[AtlassianHost]]
 
-  /** Tries to find the host with the given instance URL.
-    *
-    * @param instanceUrl Atlassian Connect host instance URL.
-    * @return Atlassian Connect host, if one is found.
-    */
-  def findByBaseUrl(instanceUrl: String): Future[Option[AtlassianHost]]
-
   /** Saves the given Atlassian Connect host.
     *
     * @param host Atlassian Connect host to store.
