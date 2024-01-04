@@ -13,10 +13,6 @@ import play.api.Configuration
   */
 @Singleton
 class AtlassianConnectProperties @Inject()(config: Configuration) {
-
-  lazy val allowReinstallMissingHost: Boolean =
-    atlassianConnectConfig.get[Boolean]("allowReinstallMissingHost")
-
   /**
     * Expiration time for JSON Web Tokens in seconds.
     */

@@ -18,15 +18,16 @@ object Implicits {
     DefaultAtlassianHost(
       e.clientKey,
       e.key,
-      e.publicKey,
       e.oauthClientId,
       e.sharedSecret,
-      e.serverVersion,
-      e.pluginsVersion,
       e.baseUrl,
+      e.displayUrl,
+      e.displayUrlServicedeskHelpCenter,
       e.productType,
       e.description,
       e.serviceEntitlementNumber,
+      e.entitlementId,
+      e.entitlementNumber,
       installed = true
     )
 
