@@ -1,4 +1,4 @@
-package io.toolsplus.atlassian.connect.play.ws
+package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository

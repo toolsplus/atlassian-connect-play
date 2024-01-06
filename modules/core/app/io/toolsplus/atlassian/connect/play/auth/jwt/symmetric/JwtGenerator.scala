@@ -5,7 +5,6 @@ import io.toolsplus.atlassian.connect.play.api.models.{AppProperties, AtlassianH
 import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalUriHttpRequest
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator._
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
-import io.toolsplus.atlassian.connect.play.ws.AtlassianHostUriResolver
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import io.toolsplus.atlassian.jwt.{HttpRequestCanonicalizer, JwtBuilder}
 import play.api.Logger

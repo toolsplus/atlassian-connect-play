@@ -18,11 +18,11 @@ case class SecurityContext(key: String,
                            entitlementNumber: Option[String])
 
 /**
- * Security context generator generates a security context as provided in the
- * Atlassian Connect installed event. It can be used to generate objects of
- * type [[io.toolsplus.atlassian.connect.play.models.LifecycleEvent]] or
- * [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]].
- */
+  * Security context generator generates a security context as provided in the
+  * Atlassian Connect installed event. It can be used to generate objects of
+  * type [[io.toolsplus.atlassian.connect.play.models.LifecycleEvent]] or
+  * [[io.toolsplus.atlassian.connect.play.api.models.AtlassianHost]].
+  */
 trait SecurityContextGen {
 
   def alphaNumStr: Gen[String] =
@@ -32,7 +32,14 @@ trait SecurityContextGen {
 
   def productTypeGen: Gen[String] = oneOf("jira", "confluence")
 
-  def hostBaseUrlGen: Gen[String] = alphaStr.suchThat(_.nonEmpty).map(hostName => s"https://$hostName.atlassian.net")
+  def hostBaseUrlGen: Gen[String] =
+    for {
+      n <- Gen.choose(10, 30)
+      hostUrl <- Gen
+        .listOfN(n, alphaChar)
+        .map(_.mkString)
+        .map(hostName => s"https://$hostName.atlassian.net")
+    } yield hostUrl
 
   def securityContextGen: Gen[SecurityContext] =
     for {
@@ -49,16 +56,16 @@ trait SecurityContextGen {
 
     } yield
       SecurityContext(key,
-        clientKey,
-        oauthClientId,
-        sharedSecret,
-        baseUrl,
-        baseUrl,
-        baseUrl,
-        productType,
-        description,
-        serviceEntitlementNumber,
-        entitlementId,
-        entitlementNumber)
+                      clientKey,
+                      oauthClientId,
+                      sharedSecret,
+                      baseUrl,
+                      baseUrl,
+                      baseUrl,
+                      productType,
+                      description,
+                      serviceEntitlementNumber,
+                      entitlementId,
+                      entitlementNumber)
 
 }
