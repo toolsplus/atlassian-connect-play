@@ -1,4 +1,4 @@
-package io.toolsplus.atlassian.connect.play.ws.jwt
+package io.toolsplus.atlassian.connect.play.request.ws.jwt
 
 import java.net.URI
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost

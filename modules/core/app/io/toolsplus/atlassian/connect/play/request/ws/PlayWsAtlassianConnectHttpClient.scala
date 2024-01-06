@@ -1,10 +1,10 @@
-package io.toolsplus.atlassian.connect.play.ws
+package io.toolsplus.atlassian.connect.play.request.ws
 
 import java.net.URI
 import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
-import io.toolsplus.atlassian.connect.play.ws.jwt.JwtSignatureCalculator
+import io.toolsplus.atlassian.connect.play.request.ws.jwt.JwtSignatureCalculator
 
 import javax.inject.Inject
 import play.api.libs.ws.{WSClient, WSRequest, WSSignatureCalculator}
@@ -24,8 +24,8 @@ import play.api.libs.ws.{WSClient, WSRequest, WSSignatureCalculator}
   * }
   * }}}
   */
-class AtlassianConnectHttpClient @Inject()(ws: WSClient,
-                                           jwtGenerator: JwtGenerator) {
+class PlayWsAtlassianConnectHttpClient @Inject()(ws: WSClient,
+                                                 jwtGenerator: JwtGenerator) {
 
   def authenticatedAsAddon(url: String)(
       implicit host: AtlassianHost): WSRequest =
