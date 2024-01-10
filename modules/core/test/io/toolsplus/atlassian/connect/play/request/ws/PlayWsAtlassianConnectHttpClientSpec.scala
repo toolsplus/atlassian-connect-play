@@ -32,7 +32,7 @@ class PlayWsAtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerS
       "successfully return a WSRequest with resolved host URL" in WsTestClient
         .withClient { client =>
           val httpClient = new PlayWsAtlassianConnectHttpClient(client, jwtGenerator)
-          forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
+          forAll(rootRelativePathGen, connectAtlassianHostGen) { (path, host) =>
             val absoluteRequestUri = URI.create(s"${host.baseUrl}$path")
             val request = httpClient.authenticatedAsAddon(path)(host)
             request.url mustBe absoluteRequestUri.toString
@@ -41,7 +41,7 @@ class PlayWsAtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerS
 
       "set correct authorization and user-agent request headers" in {
         implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
-        forAll(atlassianHostGen) { host =>
+        forAll(connectAtlassianHostGen) { host =>
           val path = "foo"
           forAll(symmetricJwtCredentialsGen(host, subject = "bar")) { credentials =>
             val absoluteRequestUri =

@@ -48,7 +48,7 @@ class SymmetricJwtAuthenticationProviderSpec
     "asked to authenticate any valid credentials" should {
 
       "fail if host has never been installed and could not be found" in {
-        forAll(atlassianHostGen) { aHost =>
+        forAll(connectAtlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           implicit val stringNoShrink: Shrink[String] =
@@ -78,7 +78,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "fail if authenticated credentials' issuer does not exist" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen) { aHost =>
+        forAll(connectAtlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> null)
@@ -100,7 +100,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "fail if credentials' signature is not valid" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen) { aHost =>
+        forAll(connectAtlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> host.clientKey)
@@ -131,7 +131,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "successfully authenticate valid credentials" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen, alphaStr) { (aHost, subject) =>
+        forAll(connectAtlassianHostGen, alphaStr) { (aHost, subject) =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> host.clientKey, "sub" -> subject)
@@ -155,7 +155,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "successfully authenticate credentials without context claim (as after GDPR migration)" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen, alphaStr) { (aHost, userAccountId) =>
+        forAll(connectAtlassianHostGen, alphaStr) { (aHost, userAccountId) =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims =
@@ -181,7 +181,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "successfully authenticate credentials with a with HTTP request QSH claim" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen, alphaStr, canonicalHttpRequestGen) {
+        forAll(connectAtlassianHostGen, alphaStr, canonicalHttpRequestGen) {
           (aHost, userAccountId, canonicalHttpRequest) =>
             val host = {
               aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
@@ -208,7 +208,7 @@ class SymmetricJwtAuthenticationProviderSpec
       "successfully authenticate credentials with a context QSH claim" in {
         implicit val stringNoShrink: Shrink[String] =
           Shrink.shrinkAny
-        forAll(atlassianHostGen, alphaStr) { (aHost, userAccountId) =>
+        forAll(connectAtlassianHostGen, alphaStr) { (aHost, userAccountId) =>
           val host = {
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           }

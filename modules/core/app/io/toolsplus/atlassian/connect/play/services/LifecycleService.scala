@@ -49,7 +49,7 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
   private def install(installedEvent: InstalledEvent): Future[AtlassianHost] = {
     val newHost = installedEventToAtlassianHost(installedEvent)
     logger.info(
-      s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
+      s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey}, ${newHost.cloudId}, ${newHost.authenticationType})")
     hostRepository.save(newHost)
   }
 

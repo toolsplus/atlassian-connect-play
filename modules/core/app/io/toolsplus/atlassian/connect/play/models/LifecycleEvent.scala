@@ -1,5 +1,7 @@
 package io.toolsplus.atlassian.connect.play.models
 
+import io.toolsplus.atlassian.connect.play.api.models.AuthenticationType
+
 /**
   * Abstract Lifecycle event of Atlassian Connect add-on.
   */
@@ -8,6 +10,8 @@ sealed trait LifecycleEvent {
   val key: String
   val clientKey: String
   val oauthClientId: Option[String]
+  val authenticationType: Option[AuthenticationType]
+  val cloudId: Option[String]
   val baseUrl: String
   val displayUrl: String
   val displayUrlServicedeskHelpCenter: String
@@ -27,6 +31,8 @@ case class InstalledEvent(
     override val clientKey: String,
     override val oauthClientId: Option[String],
     sharedSecret: String,
+    override val authenticationType: Option[AuthenticationType],
+    override val cloudId: Option[String],
     override val baseUrl: String,
     override val displayUrl: String,
     override val displayUrlServicedeskHelpCenter: String,
@@ -46,6 +52,8 @@ case class GenericEvent(override val eventType: String,
                         override val key: String,
                         override val clientKey: String,
                         override val oauthClientId: Option[String],
+                        override val authenticationType: Option[AuthenticationType],
+                        override val cloudId: Option[String],
                         override val baseUrl: String,
                         override val displayUrl: String,
                         override val displayUrlServicedeskHelpCenter: String,

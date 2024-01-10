@@ -1,6 +1,6 @@
 package io.toolsplus.atlassian.connect.play.models
 
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, DefaultAtlassianHost}
+import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, DefaultAtlassianHost, JwtAuthenticationType}
 
 object Implicits {
 
@@ -20,6 +20,8 @@ object Implicits {
       e.key,
       e.oauthClientId,
       e.sharedSecret,
+      e.authenticationType.getOrElse(JwtAuthenticationType),
+      e.cloudId,
       e.baseUrl,
       e.displayUrl,
       e.displayUrlServicedeskHelpCenter,

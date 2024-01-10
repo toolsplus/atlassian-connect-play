@@ -6,10 +6,7 @@ import io.toolsplus.atlassian.connect.play.models.{
   AtlassianConnectProperties,
   PlayAddonProperties
 }
-import io.toolsplus.atlassian.connect.play.request.sttp.jwt.JwtSignatureSttpBackend.{
-  RequestTExtensions,
-  atlassianHostTagKey
-}
+import io.toolsplus.atlassian.connect.play.request.sttp.AtlassianHostRequest.atlassianHostRequest
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -64,7 +61,7 @@ class JwtSignatureSttpBackendSpec
                                                    jwtGenerator)
         val response =
           basicRequest
-            .tag(atlassianHostTagKey, "not-an-atlassian-host")
+            .tag("ATLASSIAN_HOST", "not-an-atlassian-host")
             .get(relativeTestUrl)
             .send(backend)
         whenReady(response.failed) { error =>
@@ -76,14 +73,13 @@ class JwtSignatureSttpBackendSpec
 
     "sending a request with a valid host" should {
       "successfully sign the request to a relative URL" in {
-        forAll(atlassianHostGen) { host =>
+        forAll(connectAtlassianHostGen) { host =>
           val recordingBackend = new RecordingSttpBackend(always200Backend)
           val backend: JwtSignatureSttpBackend[Future, Any] =
             new JwtSignatureSttpBackend[Future, Any](recordingBackend,
                                                      jwtGenerator)
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(relativeTestUrl)
               .send(backend)
           val result = await(response)
@@ -96,14 +92,13 @@ class JwtSignatureSttpBackendSpec
       }
 
       "successfully sign the request to an absolute URL if the host matches" in {
-        forAll(atlassianHostGen) { host =>
+        forAll(connectAtlassianHostGen) { host =>
           val recordingBackend = new RecordingSttpBackend(always200Backend)
           val backend: JwtSignatureSttpBackend[Future, Any] =
             new JwtSignatureSttpBackend[Future, Any](recordingBackend,
                                                      jwtGenerator)
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(uri"${host.baseUrl}".withPath(relativeTestUrl.path))
               .send(backend)
           val result = await(response)
@@ -119,10 +114,9 @@ class JwtSignatureSttpBackendSpec
         val backend: JwtSignatureSttpBackend[Future, Any] =
           new JwtSignatureSttpBackend[Future, Any](always200Backend,
                                                    jwtGenerator)
-        forAll(atlassianHostGen) { host =>
+        forAll(connectAtlassianHostGen) { host =>
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(uri"https://mismatch-host-base-url.atlassian.net".withPath(
                 relativeTestUrl.path))
               .send(backend)

@@ -170,7 +170,7 @@ class AsymmetricJwtAuthenticationProviderSpec
       }
 
       "successfully authenticate valid credentials" in {
-        forAll(atlassianHostGen, alphaStr) { (aHost, subject) =>
+        forAll(connectAtlassianHostGen, alphaStr) { (aHost, subject) =>
           forAll(
             asymmetricJwtCredentialsGen(keyId,
                                         privateKey,

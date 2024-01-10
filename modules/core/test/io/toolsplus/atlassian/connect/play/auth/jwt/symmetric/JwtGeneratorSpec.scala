@@ -36,7 +36,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
     "asked to create a token by providing a Atlassian host" should {
 
       "successfully generate token" in {
-        forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
+        forAll(methodGen, rootRelativePathGen, connectAtlassianHostGen) {
           (method, relativePath, host) =>
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
             jwtGenerator.createJwtToken(method, absoluteUri, host) match {
@@ -70,7 +70,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "sign token with host's shared secret" in {
-        forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
+        forAll(methodGen, rootRelativePathGen, connectAtlassianHostGen) {
           (method, relativePath, host) =>
             val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
             val hostContextPath = Option(URI.create(host.baseUrl).getPath)
@@ -91,7 +91,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "fail if given URI is not absolute" in {
-        forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
+        forAll(methodGen, rootRelativePathGen, connectAtlassianHostGen) {
           (method, relativePath, host) =>
             val result =
               jwtGenerator.createJwtToken(method,
@@ -102,7 +102,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "fail if given URI is not matching given host" in {
-        forAll(methodGen, rootRelativePathGen, atlassianHostGen, hostNameGen) {
+        forAll(methodGen, rootRelativePathGen, connectAtlassianHostGen, hostNameGen) {
           (method, relativePath, host, randomHost) =>
             val randomBaseUrl = s"https://$randomHost.atlassian.net"
             val absoluteUri = absoluteHostUri(randomBaseUrl, relativePath)
@@ -113,7 +113,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
 
       "fail if secret key is less than 256 bits" in forAll(methodGen,
                                                            rootRelativePathGen,
-                                                           atlassianHostGen) {
+                                                           connectAtlassianHostGen) {
         (method, relativePath, randomHost) =>
           val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
           val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
@@ -136,7 +136,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
   }
 
   private def tokenPropertyTest(assertion: Jwt => Assertion) =
-    forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
+    forAll(methodGen, rootRelativePathGen, connectAtlassianHostGen) {
       (method, relativePath, host) =>
         val absoluteUri = absoluteHostUri(host.baseUrl, relativePath)
         val result = jwtGenerator.createJwtToken(method, absoluteUri, host)

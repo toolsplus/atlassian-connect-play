@@ -113,7 +113,7 @@ class EventBusSpec extends TestSpec with GuiceOneAppPerSuite with AtlassianHostG
       */
     lazy val testProbe = TestProbe()
 
-    lazy val someHost = atlassianHostGen.retryUntil(_ => true).sample.get
+    lazy val someHost = connectAtlassianHostGen.retryUntil(_ => true).sample.get
 
     lazy val installedEvent = AppInstalledEvent(someHost)
 

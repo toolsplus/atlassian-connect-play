@@ -1,13 +1,20 @@
 package io.toolsplus.atlassian.connect.play.actions.symmetric
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.actions.{JwtActionRefiner, JwtRequest, symmetric}
+import io.toolsplus.atlassian.connect.play.actions.{
+  JwtActionRefiner,
+  JwtRequest
+}
 import io.toolsplus.atlassian.connect.play.api.models.DefaultAtlassianHostUser
 import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.auth.jwt
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.SymmetricJwtAuthenticationProvider
-import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalHttpRequestQshProvider, ContextQshProvider, JwtCredentials}
+import io.toolsplus.atlassian.connect.play.auth.jwt.{
+  CanonicalHttpRequestQshProvider,
+  ContextQshProvider,
+  JwtCredentials
+}
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Gen.alphaStr
 import org.scalacheck.Shrink
@@ -52,7 +59,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       val qsh = ContextQshProvider.qsh
 
       "successfully refine JwtRequest to AtlassianHostUserRequest" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             val defaultClaims =
@@ -88,7 +95,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
        * https://community.developer.atlassian.com/t/advance-notice-of-vulnerability-bypass-connect-app-qsh-verification-via-context-jwts/46659/10?u=tbinna
        */
       "successfully refine request without any QSH claim to AtlassianHostUserRequest" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -114,7 +121,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine JwtRequest with context QSH claim and CanonicalHttpRequestQshProvider" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             val defaultClaims =
@@ -142,7 +149,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine symmetrically signed request if host is not installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             val defaultClaims =
@@ -169,7 +176,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine symmetrically signed request if authentication fails" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             forAll(symmetricJwtCredentialsGen(host, subject)) { credentials =>
               val invalidCredentials =
@@ -200,7 +207,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
           CanonicalHttpRequestQshProvider)
 
       "successfully refine to AtlassianHostUserRequest" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -237,7 +244,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
        * https://community.developer.atlassian.com/t/advance-notice-of-vulnerability-bypass-connect-app-qsh-verification-via-context-jwts/46659/10?u=tbinna
        */
       "successfully refine request without any QSH claim to AtlassianHostUserRequest" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -263,7 +270,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine if QSH provider is ContextQshProvider" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -293,7 +300,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine symmetrically signed request if host is not installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -328,9 +335,9 @@ class SymmetricallySignedAtlassianHostUserActionSpec
     "importing Implicits object members" should {
 
       "implicitly convert a HostUserRequest to a AtlassianHostUser" in {
-        forAll(atlassianHostUserGen,
-          playRequestGen,
-          symmetricJwtCredentialsGen()) {
+        forAll(atlassianHostUserGen(anyAtlassianHostGen),
+               playRequestGen,
+               symmetricJwtCredentialsGen()) {
           (hostUser, request, credentials) =>
             val jwtRequest = JwtRequest(credentials, request)
             val hostUserRequest =
@@ -343,6 +350,5 @@ class SymmetricallySignedAtlassianHostUserActionSpec
     }
 
   }
-
 
 }

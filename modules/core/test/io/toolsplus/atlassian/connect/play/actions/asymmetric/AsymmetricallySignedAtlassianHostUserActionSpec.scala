@@ -62,7 +62,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
           ContextQshProvider)
 
       "successfully refine to MaybeAtlassianHostUserRequest if host is installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -97,7 +97,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "successfully refine to MaybeAtlassianHostUserRequest if host is not installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -129,7 +129,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine if QSH provider is CanonicalHttpRequestQshProvider" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -168,7 +168,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
           CanonicalHttpRequestQshProvider)
 
       "successfully refine to MaybeAtlassianHostUserRequest if host is installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -205,7 +205,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "successfully refine to MaybeAtlassianHostUserRequest if host is not installed" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
@@ -239,7 +239,7 @@ class AsymmetricallySignedAtlassianHostUserActionSpec
       }
 
       "fail to refine if QSH provider is ContextQshProvider" in {
-        forAll(playRequestGen, atlassianHostGen, alphaStr) {
+        forAll(playRequestGen, connectAtlassianHostGen, alphaStr) {
           (request, host, subject) =>
             val canonicalHttpRequest = jwt.CanonicalPlayHttpRequest(request)
             forAll(
