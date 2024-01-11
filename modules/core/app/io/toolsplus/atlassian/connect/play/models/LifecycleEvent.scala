@@ -26,6 +26,7 @@ case class InstalledEvent(
     override val key: String,
     override val clientKey: String,
     override val oauthClientId: Option[String],
+    installationId: Option[String],
     sharedSecret: String,
     override val baseUrl: String,
     override val displayUrl: String,

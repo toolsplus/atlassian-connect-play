@@ -6,10 +6,7 @@ import io.toolsplus.atlassian.connect.play.models.{
   AtlassianConnectProperties,
   PlayAddonProperties
 }
-import io.toolsplus.atlassian.connect.play.request.sttp.jwt.JwtSignatureSttpBackend.{
-  RequestTExtensions,
-  atlassianHostTagKey
-}
+import io.toolsplus.atlassian.connect.play.request.sttp.AtlassianHostRequest.atlassianHostRequest
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -64,7 +61,7 @@ class JwtSignatureSttpBackendSpec
                                                    jwtGenerator)
         val response =
           basicRequest
-            .tag(atlassianHostTagKey, "not-an-atlassian-host")
+            .tag("ATLASSIAN_HOST", "not-an-atlassian-host")
             .get(relativeTestUrl)
             .send(backend)
         whenReady(response.failed) { error =>
@@ -82,8 +79,7 @@ class JwtSignatureSttpBackendSpec
             new JwtSignatureSttpBackend[Future, Any](recordingBackend,
                                                      jwtGenerator)
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(relativeTestUrl)
               .send(backend)
           val result = await(response)
@@ -102,8 +98,7 @@ class JwtSignatureSttpBackendSpec
             new JwtSignatureSttpBackend[Future, Any](recordingBackend,
                                                      jwtGenerator)
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(uri"${host.baseUrl}".withPath(relativeTestUrl.path))
               .send(backend)
           val result = await(response)
@@ -121,8 +116,7 @@ class JwtSignatureSttpBackendSpec
                                                    jwtGenerator)
         forAll(atlassianHostGen) { host =>
           val response =
-            basicRequest
-              .withAtlassianHost(host)
+            atlassianHostRequest(host)
               .get(uri"https://mismatch-host-base-url.atlassian.net".withPath(
                 relativeTestUrl.path))
               .send(backend)

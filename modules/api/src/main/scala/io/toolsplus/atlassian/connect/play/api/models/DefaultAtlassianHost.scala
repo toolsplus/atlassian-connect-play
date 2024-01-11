@@ -7,6 +7,7 @@ import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
 case class DefaultAtlassianHost(clientKey: ClientKey,
                                 key: String,
                                 oauthClientId: Option[String],
+                                installationId: Option[String],
                                 sharedSecret: String,
                                 baseUrl: String,
                                 displayUrl: String,

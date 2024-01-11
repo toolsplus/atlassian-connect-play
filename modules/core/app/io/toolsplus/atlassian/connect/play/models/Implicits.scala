@@ -1,6 +1,9 @@
 package io.toolsplus.atlassian.connect.play.models
 
-import io.toolsplus.atlassian.connect.play.api.models.{AtlassianHost, DefaultAtlassianHost}
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AtlassianHost,
+  DefaultAtlassianHost
+}
 
 object Implicits {
 
@@ -19,6 +22,7 @@ object Implicits {
       e.clientKey,
       e.key,
       e.oauthClientId,
+      e.installationId,
       e.sharedSecret,
       e.baseUrl,
       e.displayUrl,

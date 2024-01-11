@@ -7,6 +7,7 @@ import org.scalacheck.Gen._
 case class SecurityContext(key: String,
                            clientKey: ClientKey,
                            oauthClientId: Option[String],
+                           installationId: Option[String],
                            sharedSecret: String,
                            baseUrl: String,
                            displayUrl: String,
@@ -46,6 +47,7 @@ trait SecurityContextGen {
       key <- alphaStr
       clientKey <- clientKeyGen
       oauthClientId <- option(alphaNumStr)
+      installationId <- option(alphaNumStr)
       sharedSecret <- alphaNumStr.suchThat(s => s.length >= 32 && s.nonEmpty)
       baseUrl <- hostBaseUrlGen
       productType <- productTypeGen
@@ -55,17 +57,20 @@ trait SecurityContextGen {
       entitlementNumber <- option(alphaNumStr)
 
     } yield
-      SecurityContext(key,
-                      clientKey,
-                      oauthClientId,
-                      sharedSecret,
-                      baseUrl,
-                      baseUrl,
-                      baseUrl,
-                      productType,
-                      description,
-                      serviceEntitlementNumber,
-                      entitlementId,
-                      entitlementNumber)
+      SecurityContext(
+        key,
+        clientKey,
+        oauthClientId,
+        installationId,
+        sharedSecret,
+        baseUrl,
+        baseUrl,
+        baseUrl,
+        productType,
+        description,
+        serviceEntitlementNumber,
+        entitlementId,
+        entitlementNumber
+      )
 
 }
