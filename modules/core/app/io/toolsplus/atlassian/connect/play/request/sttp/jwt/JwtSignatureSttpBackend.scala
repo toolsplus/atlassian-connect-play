@@ -2,18 +2,18 @@ package io.toolsplus.atlassian.connect.play.request.sttp.jwt
 
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
-import io.toolsplus.atlassian.connect.play.request.sttp.jwt.JwtSignatureSttpBackend.atlassianHostTagKey
+import io.toolsplus.atlassian.connect.play.request.sttp.AtlassianHostRequest._
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import sttp.capabilities.Effect
 import sttp.client3.{
   DelegateSttpBackend,
   Identity,
   Request,
-  RequestT,
   Response,
   SttpBackend,
   UriContext
 }
+import sttp.model.HeaderNames.{Authorization, UserAgent}
 import sttp.monad.MonadError
 import sttp.monad.syntax._
 
@@ -24,12 +24,12 @@ import sttp.monad.syntax._
   *
   * For the backend to sign requests, the request must be associated with a `AtlassianHost` as follows:
   * {{{
-  * import io.toolsplus.atlassian.connect.play.request.sttp.jwt.JwtSignatureSttpBackend._
+  * import io.toolsplus.atlassian.connect.play.request.sttp.AtlassianHostRequest._
   *
   * class MyJiraHttpClient @Inject()(sttpBackend: SttpBackend[Future, Any]) {
   *
   *   def fetchIssue(issueKey: String)(implicit host: AtlassianHost) = {
-  *      basicRequest.withAtlassianHost(host).get(s"/rest/api/2/issue/{issueKey}").send(sttpBackend)
+  *      atlassianHostRequest.get(s"/rest/api/2/issue/{issueKey}").send(sttpBackend)
   *   }
   * }
   * }}}
@@ -48,25 +48,16 @@ final class JwtSignatureSttpBackend[F[_], P](
       jwt <- generateJwt(absoluteUriRequest, host)
       response <- delegate.send(
         absoluteUriRequest
-          .header("Authorization", s"JWT $jwt")
-          .header("User-Agent", "atlassian-connect-play")
+          .header(Authorization, s"JWT $jwt")
+          .header(UserAgent, "atlassian-connect-play")
       )
     } yield response
 
   private def extractHost[T, R >: P with Effect[F]](
       request: Request[T, R]): F[AtlassianHost] =
-    request.tag(atlassianHostTagKey) match {
-      case Some(host) =>
-        host match {
-          case h: AtlassianHost => F.unit(h)
-          case h =>
-            F.error(new Exception(
-              s"Failed to extract Atlassian host from request: Invalid host type '${h.getClass.getName}', expected '${classOf[
-                AtlassianHost].getName}'"))
-        }
-      case None =>
-        F.error(new Exception(
-          "Failed to extract Atlassian host from request: No host configured. Use `request.tag(\"ATLASSIAN_HOST\", host)` to associate a request to a host"))
+    request.atlassianHost match {
+      case Right(host) => F.unit(host)
+      case Left(error) => F.error(error)
     }
 
   private def generateJwt[T, R >: P with Effect[F]](
@@ -93,14 +84,5 @@ final class JwtSignatureSttpBackend[F[_], P](
         .fragment(request.uri.fragment)
       request.copy[Identity, T, R](uri = absoluteUri)
     }
-  }
-}
-
-object JwtSignatureSttpBackend {
-  val atlassianHostTagKey = "ATLASSIAN_HOST"
-
-  implicit class RequestTExtensions[U[_], T, -R](r: RequestT[U, T, R]) {
-    def withAtlassianHost(host: AtlassianHost): RequestT[U, T, R] =
-      r.tag(atlassianHostTagKey, host)
   }
 }

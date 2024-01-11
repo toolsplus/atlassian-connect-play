@@ -15,6 +15,7 @@ trait AtlassianHostGen extends SecurityContextGen {
         securityContext.clientKey,
         securityContext.key,
         securityContext.oauthClientId,
+        securityContext.installationId,
         securityContext.sharedSecret,
         securityContext.baseUrl,
         securityContext.displayUrl,

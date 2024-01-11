@@ -1,9 +1,6 @@
 package io.toolsplus.atlassian.connect.play.generators
 
-import io.toolsplus.atlassian.connect.play.models.{
-  GenericEvent,
-  InstalledEvent
-}
+import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
@@ -19,6 +16,7 @@ trait LifecycleEventGen extends SecurityContextGen {
         securityContext.key,
         securityContext.clientKey,
         securityContext.oauthClientId,
+        securityContext.installationId,
         securityContext.sharedSecret,
         securityContext.baseUrl,
         securityContext.displayUrl,

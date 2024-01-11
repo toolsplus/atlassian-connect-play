@@ -20,6 +20,14 @@ trait AtlassianHostRepository {
     */
   def findByClientKey(clientKey: ClientKey): Future[Option[AtlassianHost]]
 
+  /** Tries to find the host with the given installation id.
+    *
+    * @param installationId Forge installation id of the Atlassian Connect host.
+    * @return Atlassian Connect host, if one is found.
+    */
+  def findByInstallationId(
+      installationId: String): Future[Option[AtlassianHost]]
+
   /** Saves the given Atlassian Connect host.
     *
     * @param host Atlassian Connect host to store.
