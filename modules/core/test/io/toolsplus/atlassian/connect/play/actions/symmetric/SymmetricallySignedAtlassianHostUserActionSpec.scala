@@ -74,7 +74,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
                   refiner.refine(jwtRequest)
                 }
                 result mustBe Right(
-                  AtlassianHostUserRequest(hostUser, jwtRequest))
+                  ConnectAtlassianHostUserRequest(hostUser, jwtRequest))
             }
         }
       }
@@ -108,7 +108,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
                 refiner.refine(jwtRequest)
               }
               result mustBe Right(
-                AtlassianHostUserRequest(hostUser, jwtRequest))
+                ConnectAtlassianHostUserRequest(hostUser, jwtRequest))
             }
         }
       }
@@ -223,7 +223,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
                 refiner.refine(jwtRequest)
               }
               result mustBe Right(
-                AtlassianHostUserRequest(hostUser, jwtRequest))
+                ConnectAtlassianHostUserRequest(hostUser, jwtRequest))
             }
         }
       }
@@ -257,7 +257,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
                 refiner.refine(jwtRequest)
               }
               result mustBe Right(
-                AtlassianHostUserRequest(hostUser, jwtRequest))
+                ConnectAtlassianHostUserRequest(hostUser, jwtRequest))
             }
         }
       }
@@ -334,7 +334,7 @@ class SymmetricallySignedAtlassianHostUserActionSpec
           (hostUser, request, credentials) =>
             val jwtRequest = JwtRequest(credentials, request)
             val hostUserRequest =
-              AtlassianHostUserRequest(hostUser, jwtRequest)
+              ConnectAtlassianHostUserRequest(hostUser, jwtRequest)
             atlassianHostUserAction.Implicits.hostUserRequestToHostUser(
               hostUserRequest) mustBe hostUser
         }
