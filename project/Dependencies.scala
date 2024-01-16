@@ -10,6 +10,7 @@ object Dependencies {
     Library.circePlay,
     Library.scalaUri,
     Library.sttp,
+    Library.nimbusJoseJwt,
     Library.scalaTest % "test",
     Library.scalaTestPlusScalaCheck % "test",
     Library.scalaTestPlusPlay % "test",
@@ -27,6 +28,7 @@ object Version {
   val playCirce = "2814.4"
   val scalaUri = "4.0.3"
   val sttp = "3.9.1"
+  val nimbusJoseJwt = "9.37.3"
   val scalaTest = "3.2.9"
   val scalaTestPlusPlay = "5.1.0"
   val scalaTestPlusScalaCheck = "3.2.9.0"
@@ -45,6 +47,7 @@ object Library {
   val circePlay = "com.dripower" %% "play-circe" % Version.playCirce
   val scalaUri = "io.lemonlabs" %% "scala-uri" % Version.scalaUri
   val sttp = "com.softwaremill.sttp.client3" %% "core" % Version.sttp
+  val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % Version.nimbusJoseJwt
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
   val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % Version.scalaTestPlusScalaCheck
   val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
