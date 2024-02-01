@@ -3,10 +3,14 @@ package io.toolsplus.atlassian.connect.play.services
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.{
   AtlassianHost,
-  DefaultAtlassianHost
+  DefaultAtlassianHost,
+  DefaultForgeInstallation,
+  ForgeInstallation
 }
-import io.toolsplus.atlassian.connect.play.api.models.Predefined.ClientKey
-import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
+import io.toolsplus.atlassian.connect.play.api.repositories.{
+  AtlassianHostRepository,
+  ForgeInstallationRepository
+}
 import io.toolsplus.atlassian.connect.play.models.Implicits._
 import org.scalacheck.Gen._
 
@@ -15,8 +19,11 @@ import scala.concurrent.Future
 class LifecycleServiceSpec extends TestSpec {
 
   val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
+  val forgeInstallationRepository: ForgeInstallationRepository =
+    mock[ForgeInstallationRepository]
 
-  val lifecycleService = new LifecycleService(hostRepository)
+  val lifecycleService =
+    new LifecycleService(hostRepository, forgeInstallationRepository)
 
   "A LifecycleService" when {
 
@@ -41,21 +48,33 @@ class LifecycleServiceSpec extends TestSpec {
     "asked to install a security context from an authenticated request" should {
 
       "successfully install Atlassian host from security context" in {
-        forAll(installedEventGen, atlassianHostUserGen) {
-          (someInstalledEvent, someHostUser) =>
-            val clientKey = "fake-client-key"
-            val installedEvent =
-              someInstalledEvent.copy(clientKey = clientKey)
-            val newHost = installedEventToAtlassianHost(installedEvent)
+        forAll(installedEventGen) { someInstalledEvent =>
+          val clientKey = "fake-client-key"
+          val installedEvent =
+            someInstalledEvent.copy(clientKey = clientKey)
+          val newHost = installedEventToAtlassianHost(installedEvent)
+          val maybeForgeInstallation = newHost.installationId.map(
+            DefaultForgeInstallation(_, newHost.clientKey))
 
-            (hostRepository
-              .save(_: AtlassianHost)) expects newHost returning Future
-              .successful(newHost)
+          maybeForgeInstallation match {
+            case Some(installation) =>
+              (forgeInstallationRepository
+                .save(_: ForgeInstallation)) expects installation returning Future
+                .successful(installation)
+            case None =>
+              (forgeInstallationRepository
+                .deleteByClientKey(_: String)) expects newHost.clientKey returning Future
+                .successful(0)
+          }
 
-            val result = await {
-              lifecycleService.installed(installedEvent).value
-            }
-            result mustBe Right(newHost)
+          (hostRepository
+            .save(_: AtlassianHost)) expects newHost returning Future
+            .successful(newHost)
+
+          val result = await {
+            lifecycleService.installed(installedEvent).value
+          }
+          result mustBe Right(newHost)
         }
       }
     }
@@ -80,7 +99,9 @@ class LifecycleServiceSpec extends TestSpec {
               .successful(uninstalledHost)
 
             val result = await {
-              lifecycleService.uninstalled(uninstalledEvent, Some(installedHostUser)).value
+              lifecycleService
+                .uninstalled(uninstalledEvent, Some(installedHostUser))
+                .value
             }
             result mustBe Right(uninstalledHost)
         }
@@ -91,7 +112,7 @@ class LifecycleServiceSpec extends TestSpec {
           (genericEvent, someHostUser) =>
             val clientKey = "clientKeyA"
             val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
-              clientKey = "clientKeyB")
+                                                     clientKey = "clientKeyB")
             val installedHost =
               someHostUser.host
                 .asInstanceOf[DefaultAtlassianHost]
@@ -99,28 +120,23 @@ class LifecycleServiceSpec extends TestSpec {
             val installedHostUser = someHostUser.copy(host = installedHost)
 
             val result = await {
-              lifecycleService.uninstalled(uninstalledEvent, Some(installedHostUser)).value
+              lifecycleService
+                .uninstalled(uninstalledEvent, Some(installedHostUser))
+                .value
             }
             result mustBe Left(HostForbiddenError)
         }
       }
 
       "fail if Atlassian host installation could not be found" in {
-        forAll(genericEventGen, atlassianHostUserGen) {
-          (genericEvent, someHostUser) =>
-            val clientKey = "clientKey"
-            val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
-                                                     clientKey = clientKey)
-            val installedHost =
-              someHostUser.host
-                .asInstanceOf[DefaultAtlassianHost]
-                .copy(clientKey = clientKey, installed = true)
-            val hostUser = someHostUser.copy(host = installedHost)
-
-            val result = await {
-              lifecycleService.uninstalled(uninstalledEvent, None).value
-            }
-            result mustBe Left(MissingAtlassianHostError)
+        forAll(genericEventGen) { genericEvent =>
+          val clientKey = "clientKey"
+          val uninstalledEvent =
+            genericEvent.copy(eventType = "uninstalled", clientKey = clientKey)
+          val result = await {
+            lifecycleService.uninstalled(uninstalledEvent, None).value
+          }
+          result mustBe Left(MissingAtlassianHostError)
         }
       }
 

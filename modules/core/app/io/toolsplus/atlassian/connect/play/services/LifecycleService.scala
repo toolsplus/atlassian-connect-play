@@ -9,9 +9,13 @@ import io.toolsplus.atlassian.connect.play.api.events.{
 }
 import io.toolsplus.atlassian.connect.play.api.models.{
   AtlassianHost,
-  AtlassianHostUser
+  AtlassianHostUser,
+  DefaultForgeInstallation
 }
-import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
+import io.toolsplus.atlassian.connect.play.api.repositories.{
+  AtlassianHostRepository,
+  ForgeInstallationRepository
+}
 import io.toolsplus.atlassian.connect.play.events.EventBus
 import io.toolsplus.atlassian.connect.play.models.Implicits._
 import io.toolsplus.atlassian.connect.play.models._
@@ -19,8 +23,11 @@ import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.chaining._
 
-class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
+class LifecycleService @Inject()(
+    hostRepository: AtlassianHostRepository,
+    forgeInstallationRepository: ForgeInstallationRepository) {
 
   private val logger = Logger(classOf[LifecycleService])
 
@@ -48,6 +55,23 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
     */
   private def install(installedEvent: InstalledEvent): Future[AtlassianHost] = {
     val newHost = installedEventToAtlassianHost(installedEvent)
+
+    newHost.installationId match {
+      case Some(installationId) =>
+        forgeInstallationRepository
+          .save(DefaultForgeInstallation(installationId, newHost.clientKey))
+          .map(_.tap(_ =>
+            logger.info(
+              s"Saved Forge installation for host ${newHost.baseUrl} (${newHost.clientKey}, ${newHost.installationId})")))
+      case None =>
+        forgeInstallationRepository
+          .deleteByClientKey(newHost.clientKey)
+          .map(_.tap(deleteCount =>
+            if (deleteCount > 0)
+              logger.info(
+                s"Removed old Forge installations for host ${newHost.baseUrl} (${newHost.clientKey})")))
+    }
+
     logger.info(
       s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
     hostRepository.save(newHost)
@@ -97,7 +121,8 @@ class LifecycleService @Inject()(hostRepository: AtlassianHostRepository) {
       case None =>
         logger.error(
           s"Received authenticated uninstall request but no installation for host ${uninstalledEvent.baseUrl} has been found. Assume the app has been removed.")
-        EitherT.left(Future.successful[LifecycleError](MissingAtlassianHostError))
+        EitherT.left(
+          Future.successful[LifecycleError](MissingAtlassianHostError))
     }
   }
 
