@@ -53,29 +53,36 @@ class LifecycleService @Inject()(
     *                       provided by Atlassian product.
     * @return Either the newly installed [[AtlassianHost]] or a [[HostForbiddenError]]
     */
-  private def install(installedEvent: InstalledEvent): Future[AtlassianHost] = {
-    val newHost = installedEventToAtlassianHost(installedEvent)
-
-    newHost.installationId match {
-      case Some(installationId) =>
-        forgeInstallationRepository
-          .save(DefaultForgeInstallation(installationId, newHost.clientKey))
-          .map(_.tap(_ =>
-            logger.info(
-              s"Saved Forge installation for host ${newHost.baseUrl} (${newHost.clientKey}, ${newHost.installationId})")))
-      case None =>
-        forgeInstallationRepository
-          .deleteByClientKey(newHost.clientKey)
-          .map(_.tap(deleteCount =>
-            if (deleteCount > 0)
+  private def install(installedEvent: InstalledEvent): Future[AtlassianHost] =
+    for {
+      savedHost <- hostRepository.save(
+        installedEventToAtlassianHost(installedEvent))
+      _ <- Future.successful(logger.info(
+        s"Saved installation for host ${savedHost.baseUrl} (${savedHost.clientKey})"))
+      _ <- savedHost.installationId match {
+        case Some(installationId) =>
+          forgeInstallationRepository
+            .save(DefaultForgeInstallation(installationId, savedHost.clientKey))
+            .map(_.tap(_ =>
               logger.info(
-                s"Removed old Forge installations for host ${newHost.baseUrl} (${newHost.clientKey})")))
-    }
-
-    logger.info(
-      s"Saved installation for host ${newHost.baseUrl} (${newHost.clientKey})")
-    hostRepository.save(newHost)
-  }
+                s"Saved Forge installation for host ${savedHost.baseUrl} (${savedHost.clientKey}, ${savedHost.installationId})")))
+            .recover { error =>
+              logger.error(
+                s"Failed to save Forge installation for host ${savedHost.baseUrl} (${savedHost.clientKey}, ${savedHost.installationId}): $error")
+            }
+        case None =>
+          forgeInstallationRepository
+            .deleteByClientKey(savedHost.clientKey)
+            .map(_.tap(deleteCount =>
+              if (deleteCount > 0)
+                logger.info(
+                  s"Removed old Forge installations for host ${savedHost.baseUrl} (${savedHost.clientKey})")))
+            .recover { error =>
+              logger.error(
+                s"Failed to remove old Forge installation for host ${savedHost.baseUrl} (${savedHost.clientKey}, ${savedHost.installationId}): $error")
+            }
+      }
+    } yield savedHost
 
   /** Uninstalls the given Atlassian host by setting the installed flag in
     * the host store to false.
