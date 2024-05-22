@@ -2,7 +2,6 @@ package io.toolsplus.atlassian.connect.play.actions
 
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.auth.jwt
-import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalPlayHttpRequest
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import org.scalacheck.Shrink
 import play.api.http.HeaderNames

@@ -1,7 +1,11 @@
 package io.toolsplus.atlassian.connect.play.actions.symmetric
 
 import cats.implicits._
-import io.toolsplus.atlassian.connect.play.actions.{JwtActionRefiner, JwtRequest}
+import io.toolsplus.atlassian.connect.play.actions.{
+  AtlassianHostUserRequest,
+  JwtActionRefiner,
+  JwtRequest
+}
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHostUser
 import io.toolsplus.atlassian.connect.play.auth.jwt._
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.SymmetricJwtAuthenticationProvider
@@ -11,16 +15,16 @@ import play.api.mvc._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-case class AtlassianHostUserRequest[A](hostUser: AtlassianHostUser,
-                                       request: JwtRequest[A])
-    extends WrappedRequest[A](request)
+case class ConnectAtlassianHostUserRequest[A](hostUser: AtlassianHostUser,
+                                              request: JwtRequest[A])
+    extends AtlassianHostUserRequest[A](request)
 
 case class SymmetricallySignedAtlassianHostUserActionRefiner(
     jwtAuthenticationProvider: SymmetricJwtAuthenticationProvider,
     qshProvider: QshProvider)(implicit val executionContext: ExecutionContext)
-    extends ActionRefiner[JwtRequest, AtlassianHostUserRequest] {
+    extends ActionRefiner[JwtRequest, ConnectAtlassianHostUserRequest] {
   override def refine[A](request: JwtRequest[A])
-    : Future[Either[Result, AtlassianHostUserRequest[A]]] = {
+    : Future[Either[Result, ConnectAtlassianHostUserRequest[A]]] = {
     val expectedQsh = qshProvider match {
       case ContextQshProvider => ContextQshProvider.qsh
       case CanonicalHttpRequestQshProvider =>
@@ -29,7 +33,7 @@ case class SymmetricallySignedAtlassianHostUserActionRefiner(
     }
     jwtAuthenticationProvider
       .authenticate(request.credentials, expectedQsh)
-      .map(AtlassianHostUserRequest(_, request))
+      .map(ConnectAtlassianHostUserRequest(_, request))
       .leftMap(e => Unauthorized(s"JWT validation failed: ${e.getMessage}"))
       .value
   }
@@ -49,13 +53,13 @@ class SymmetricallySignedAtlassianHostUserAction @Inject()(
     * @return Play action for symmetrically signed JWT requests
     */
   def authenticateWith(qshProvider: QshProvider)
-    : ActionBuilder[AtlassianHostUserRequest, AnyContent] =
-    new ActionBuilder[AtlassianHostUserRequest, AnyContent] {
+    : ActionBuilder[ConnectAtlassianHostUserRequest, AnyContent] =
+    new ActionBuilder[ConnectAtlassianHostUserRequest, AnyContent] {
       override val parser: BodyParsers.Default = bodyParser
       override val executionContext: ExecutionContext = executionCtx
       override def invokeBlock[A](
           request: Request[A],
-          block: AtlassianHostUserRequest[A] => Future[Result])
+          block: ConnectAtlassianHostUserRequest[A] => Future[Result])
         : Future[Result] = {
         (jwtActionRefiner andThen SymmetricallySignedAtlassianHostUserActionRefiner(
           symmetricJwtAuthenticationProvider,
@@ -68,14 +72,15 @@ class SymmetricallySignedAtlassianHostUserAction @Inject()(
     import scala.language.implicitConversions
 
     /**
-      * Implicitly convert an instance of [[AtlassianHostUserRequest]] to an
+      * Implicitly convert an instance of [[ConnectAtlassianHostUserRequest]] to an
       * instance of AtlassianHostUser.
       *
       * @param request Atlassian host user request instance.
       * @return Atlassian host user instance extracted from request.
       */
     implicit def hostUserRequestToHostUser(
-        implicit request: AtlassianHostUserRequest[_]): AtlassianHostUser =
+        implicit request: ConnectAtlassianHostUserRequest[_])
+      : AtlassianHostUser =
       request.hostUser
 
   }
