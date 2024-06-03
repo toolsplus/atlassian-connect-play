@@ -1,12 +1,10 @@
 package io.toolsplus.atlassian.connect.play.request.ws
 
-import java.net.URI
-import akka.util.ByteString
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.models.AtlassianHost
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
-import io.toolsplus.atlassian.connect.play.request.ws.PlayWsAtlassianConnectHttpClient
 import io.toolsplus.atlassian.connect.play.request.ws.jwt.JwtSignatureCalculator
+import org.apache.pekko.util.ByteString
 import org.scalacheck.Shrink
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.HeaderNames.{AUTHORIZATION, USER_AGENT}
@@ -15,11 +13,15 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.test.{Helpers, TestServer, WsTestClient}
 
+import java.net.URI
 import scala.concurrent.{Future, Promise}
 
-class PlayWsAtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerSuite {
+class PlayWsAtlassianConnectHttpClientSpec
+    extends TestSpec
+    with GuiceOneAppPerSuite {
 
-  val action: DefaultActionBuilder = app.injector.instanceOf[DefaultActionBuilder]
+  val action: DefaultActionBuilder =
+    app.injector.instanceOf[DefaultActionBuilder]
   val parser: PlayBodyParsers = app.injector.instanceOf[PlayBodyParsers]
 
   val testServerPort = 44444
@@ -31,7 +33,8 @@ class PlayWsAtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerS
 
       "successfully return a WSRequest with resolved host URL" in WsTestClient
         .withClient { client =>
-          val httpClient = new PlayWsAtlassianConnectHttpClient(client, jwtGenerator)
+          val httpClient =
+            new PlayWsAtlassianConnectHttpClient(client, jwtGenerator)
           forAll(rootRelativePathGen, atlassianHostGen) { (path, host) =>
             val absoluteRequestUri = URI.create(s"${host.baseUrl}$path")
             val request = httpClient.authenticatedAsAddon(path)(host)
@@ -43,25 +46,27 @@ class PlayWsAtlassianConnectHttpClientSpec extends TestSpec with GuiceOneAppPerS
         implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
         forAll(atlassianHostGen) { host =>
           val path = "foo"
-          forAll(symmetricJwtCredentialsGen(host, subject = "bar")) { credentials =>
-            val absoluteRequestUri =
-              URI.create(s"http://localhost:$testServerPort/$path")
+          forAll(symmetricJwtCredentialsGen(host, subject = "bar")) {
+            credentials =>
+              val absoluteRequestUri =
+                URI.create(s"http://localhost:$testServerPort/$path")
 
-            (jwtGenerator
-              .createJwtToken(_: String, _: URI, _: AtlassianHost))
-              .expects("GET", absoluteRequestUri, host)
-              .returning(Right(credentials.rawJwt))
+              (jwtGenerator
+                .createJwtToken(_: String, _: URI, _: AtlassianHost))
+                .expects("GET", absoluteRequestUri, host)
+                .returning(Right(credentials.rawJwt))
 
-            val (request, _, _) = receiveRequest { hostUrl => wsClient =>
-              val httpClient = new PlayWsAtlassianConnectHttpClient(wsClient, jwtGenerator)
+              val (request, _, _) = receiveRequest { hostUrl => wsClient =>
+                val httpClient =
+                  new PlayWsAtlassianConnectHttpClient(wsClient, jwtGenerator)
 
-              httpClient.authenticatedAsAddon(s"$hostUrl/$path")(host).get()
-            }
-            request.headers(AUTHORIZATION).startsWith("JWT ") mustBe true
-            request
-              .headers(AUTHORIZATION)
-              .drop("JWT ".length) mustBe credentials.rawJwt
-            request.headers(USER_AGENT) mustBe JwtSignatureCalculator.userAgent
+                httpClient.authenticatedAsAddon(s"$hostUrl/$path")(host).get()
+              }
+              request.headers(AUTHORIZATION).startsWith("JWT ") mustBe true
+              request
+                .headers(AUTHORIZATION)
+                .drop("JWT ".length) mustBe credentials.rawJwt
+              request.headers(USER_AGENT) mustBe JwtSignatureCalculator.userAgent
           }
         }
       }

@@ -4,7 +4,7 @@ import com.nimbusds.jose.jwk.source.{JWKSource, JWKSourceBuilder}
 import com.nimbusds.jose.util.DefaultResourceRetriever
 import io.toolsplus.atlassian.connect.play.models.AtlassianForgeProperties
 
-import java.net.URL
+import java.net.{URI, URL}
 import javax.inject.Inject
 import ForgeRemoteJWKSourceProvider._
 
@@ -28,10 +28,11 @@ class ForgeRemoteJWKSourceProvider @Inject()(
 
     JWKSourceBuilder
       .create[ForgeInvocationContext](
-        new URL(jwkSetUrl),
+        new URI(jwkSetUrl).toURL,
         new DefaultResourceRetriever(remoteJWKSetHttpConnectTimeoutMs,
                                      remoteJWKSetHttpReadTimeoutMs,
-                                     remoteJWKSetHttpEntitySizeLimitByte))
+                                     remoteJWKSetHttpEntitySizeLimitByte)
+      )
       .retrying(true)
       .build()
   }
