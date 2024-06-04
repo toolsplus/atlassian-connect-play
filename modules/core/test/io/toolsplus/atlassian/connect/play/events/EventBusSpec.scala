@@ -1,16 +1,23 @@
 package io.toolsplus.atlassian.connect.play.events
 
-import akka.actor.{Actor, ActorSystem, Props}
-import akka.testkit.TestProbe
+import org.apache.pekko.actor.{Actor, ActorSystem, Props}
+import org.apache.pekko.testkit.TestProbe
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.api.events.{AppEvent, AppInstalledEvent, AppUninstalledEvent}
+import io.toolsplus.atlassian.connect.play.api.events.{
+  AppEvent,
+  AppInstalledEvent,
+  AppUninstalledEvent
+}
 import io.toolsplus.atlassian.connect.play.generators.AtlassianHostGen
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class EventBusSpec extends TestSpec with GuiceOneAppPerSuite with AtlassianHostGen {
+class EventBusSpec
+    extends TestSpec
+    with GuiceOneAppPerSuite
+    with AtlassianHostGen {
 
   "Given an EventBus" when {
 
@@ -58,7 +65,7 @@ class EventBusSpec extends TestSpec with GuiceOneAppPerSuite with AtlassianHostG
       "handle multiple event" in new Context {
         val listener = system.actorOf(Props(new Actor {
           def receive = {
-            case e @ AppInstalledEvent(_) => testProbe.ref ! e
+            case e @ AppInstalledEvent(_)   => testProbe.ref ! e
             case e @ AppUninstalledEvent(_) => testProbe.ref ! e
           }
         }))
@@ -106,7 +113,7 @@ class EventBusSpec extends TestSpec with GuiceOneAppPerSuite with AtlassianHostG
     /**
       * Play actor system.
       */
-    lazy implicit val system = app.injector.instanceOf[ActorSystem]
+    lazy implicit val system: ActorSystem = app.injector.instanceOf[ActorSystem]
 
     /**
       * Test probe.

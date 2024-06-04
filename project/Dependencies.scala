@@ -17,24 +17,24 @@ object Dependencies {
     Library.scalaMock % "test",
     Library.scalaCheck % "test",
     Library.atlassianJwtGenerators % "test",
-    Library.akkaTestKit % "test"
+    Library.pekkoTestKit % "test"
   )
 }
 
 object Version {
-  val atlassianJwt = "0.2.1"
-  val cats = "2.10.0"
+  val atlassianJwt = "0.3.0"
+  val cats = "2.12.0"
   val circe = "0.14.7"
-  val playCirce = "2814.4"
+  val playCirce = "3014.1"
   val scalaUri = "4.0.3"
   val sttp = "3.9.6"
-  val nimbusJoseJwt = "9.39"
+  val nimbusJoseJwt = "9.39.3"
   val scalaTest = "3.2.18"
-  val scalaTestPlusPlay = "5.1.0"
-  val scalaTestPlusScalaCheck = "3.2.11.0"
-  val scalaMock = "5.1.0"
+  val scalaTestPlusPlay = "7.0.1"
+  val scalaTestPlusScalaCheck = "3.2.18.0"
+  val scalaMock = "6.0.0"
   val scalaCheck = "1.18.0"
-  val akkaTestKit = "2.6.21"
+  val pekkoTestKit = "1.0.2"
 }
 
 object Library {
@@ -49,9 +49,9 @@ object Library {
   val sttp = "com.softwaremill.sttp.client3" %% "core" % Version.sttp
   val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % Version.nimbusJoseJwt
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
-  val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % Version.scalaTestPlusScalaCheck
+  val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-17" % Version.scalaTestPlusScalaCheck
   val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck
-  val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % Version.akkaTestKit
+  val pekkoTestKit = "org.apache.pekko" %% "pekko-testkit" % Version.pekkoTestKit
 }

@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.events
 
-import akka.event.{ActorEventBus, SubchannelClassification}
-import akka.util.Subclassification
+import org.apache.pekko.event.{ActorEventBus, SubchannelClassification}
+import org.apache.pekko.util.Subclassification
 import io.toolsplus.atlassian.connect.play.api.events.AppEvent
 
 /**
