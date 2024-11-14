@@ -42,5 +42,6 @@ class ForgeRemoteJWKSourceProvider @Inject()(
 object ForgeRemoteJWKSourceProvider {
   private val remoteJWKSetHttpConnectTimeoutMs: Int = 1000
   private val remoteJWKSetHttpReadTimeoutMs: Int = 1000
-  private val remoteJWKSetHttpEntitySizeLimitByte: Int = 100 * 1024
+  // Setting the value to zero means infinite
+  private val remoteJWKSetHttpEntitySizeLimitByte: Int = 0
 }
