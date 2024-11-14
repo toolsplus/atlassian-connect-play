@@ -29,21 +29,25 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
           "nbf" -> Date
             .from(ZonedDateTime.now.minusMinutes(5).toInstant),
           "app" -> toJson(invocationContext.app)
-        ) ++ Seq("context" -> invocationContext.context,
-                 "principal" -> invocationContext.principal)
-          .filter(_._2.isDefined) ++ customClaims,
+        ) ++ Seq(
+          "context" -> invocationContext.context,
+          "principal" -> invocationContext.principal
+        )
+          .filter(_._2.isDefined) ++ customClaims
       )
     } yield jwt
 
-  /**
-    * Converts the app case class deeply to JSON entities.
+  /** Converts the app case class deeply to JSON entities.
     *
-    * While the underlying GSon library manages to convert almost anything to JSON the result
-    * is sometimes not clear, in particular when dealing with Option values.
+    * While the underlying GSon library manages to convert almost anything to
+    * JSON the result is sometimes not clear, in particular when dealing with
+    * Option values.
     *
-    * @see https://connect2id.com/products/nimbus-jose-jwt/examples/json-entity-mapping
+    * @see
+    *   https://connect2id.com/products/nimbus-jose-jwt/examples/json-entity-mapping
     *
-    * @param app App instance to convert
+    * @param app
+    *   App instance to convert
     */
   private def toJson(app: App) = {
     Map(
@@ -58,6 +62,17 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
       "module" -> Map(
         "type" -> app.module.`type`,
         "key" -> app.module.key
+      ).asJava,
+      "installation" -> Map(
+        "id" -> app.installation.id,
+        "contexts" -> app.installation.contexts
+          .map(c =>
+            Map(
+              "name" -> c.name,
+              "apiBaseUrl" -> c.apiBaseUrl
+            ).asJava
+          )
+          .asJava
       ).asJava,
       "license" -> (app.license match {
         case Some(license) =>

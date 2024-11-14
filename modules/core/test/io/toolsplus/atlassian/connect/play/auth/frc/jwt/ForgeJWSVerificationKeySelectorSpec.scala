@@ -26,6 +26,15 @@ class ForgeJWSVerificationKeySelectorSpec extends TestSpec {
         "fake-app-version",
         Environment("fake-type", "fake-id"),
         Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
         Some(License(true))
       ),
       None,
@@ -47,8 +56,13 @@ class ForgeJWSVerificationKeySelectorSpec extends TestSpec {
           .returning(
             new ImmutableJWKSet(
               new JWKSet(
-                Seq[JWK](new RSAKey.Builder(publicKey1).build(),
-                         new RSAKey.Builder(publicKey2).build()).asJava)))
+                Seq[JWK](
+                  new RSAKey.Builder(publicKey1).build(),
+                  new RSAKey.Builder(publicKey2).build()
+                ).asJava
+              )
+            )
+          )
 
         val jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256).build()
         val result =

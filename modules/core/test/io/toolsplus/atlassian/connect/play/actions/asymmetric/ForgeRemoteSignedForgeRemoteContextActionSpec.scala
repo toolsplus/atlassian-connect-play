@@ -9,6 +9,8 @@ import io.toolsplus.atlassian.connect.play.auth.frc.jwt.{
   ForgeInvocationTokenGen,
   ForgeJWSVerificationKeySelector,
   ForgeRemoteJwtAuthenticationProvider,
+  Installation,
+  InstallationContext,
   Module
 }
 import io.toolsplus.atlassian.connect.play.auth.frc.{
@@ -44,7 +46,8 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
           "remote.jwkSetStagingUrl" -> "fake-jwk-set-staging-url",
           "remote.jwkSetProductionUrl" -> "fake-jwk-set-production-url"
         )
-      ))
+      )
+    )
   val forgeProperties = new AtlassianForgeProperties(config)
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
@@ -56,6 +59,15 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
         "fake-app-version",
         Environment("fake-type", "fake-id"),
         Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
         None
       ),
       None,
@@ -71,7 +83,8 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
   val authenticationProvider =
     new ForgeRemoteJwtAuthenticationProvider(
       forgeProperties,
-      mockForgeJWSVerificationKeySelector)
+      mockForgeJWSVerificationKeySelector
+    )
 
   "ForgeRemoteSignedForgeRemoteContextAction" when {
 
@@ -82,18 +95,19 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
 
       "successfully refine to ForgeRemoteContextRequest" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)
             .returning(java.util.List.of(publicKey))
 
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
@@ -103,37 +117,46 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
           }
           result mustBe Right(
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
-            ))
+            )
+          )
         }
       }
 
       "fail to refine if authentication fails" in {
         val anotherKeyPair = JwtTestHelper.generateKeyPair()
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  anotherKeyPair.getPrivate)) {
-          invocationToken =>
-            (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
-              .expects(*, fakeForgeInvocationContext)
-              .returning(java.util.List.of(publicKey))
+          forgeInvocationTokenGen(
+            fakeForgeInvocationContext,
+            keyId,
+            anotherKeyPair.getPrivate
+          )
+        ) { invocationToken =>
+          (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
+            .expects(*, fakeForgeInvocationContext)
+            .returning(java.util.List.of(publicKey))
 
-            val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                                "fake-span-id",
-                                                                invocationToken,
-                                                                None,
-                                                                None)
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
-            val forgeRemoteRequest =
-              ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
+          val forgeRemoteRequest =
+            ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
-            val result = refiner.refine(forgeRemoteRequest)
+          val result = refiner.refine(forgeRemoteRequest)
 
-            status(result.map(_.left.value)) mustBe UNAUTHORIZED
-            contentAsString(result.map(_.left.value)) startsWith "JWT validation failed"
+          status(result.map(_.left.value)) mustBe UNAUTHORIZED
+          contentAsString(
+            result.map(_.left.value)
+          ) startsWith "JWT validation failed"
         }
       }
     }
