@@ -4,7 +4,6 @@ import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.actions.ForgeRemoteRequest
 import io.toolsplus.atlassian.connect.play.api.models.{
   AtlassianHost,
-  AtlassianHostUser,
   DefaultAtlassianHostUser,
   DefaultForgeInstallation
 }
@@ -17,8 +16,6 @@ import io.toolsplus.atlassian.connect.play.auth.frc.jwt.{
   Environment,
   ForgeInvocationContext,
   ForgeInvocationTokenGen,
-  ForgeJWSVerificationKeySelector,
-  ForgeRemoteJwtAuthenticationProvider,
   Module
 }
 import io.toolsplus.atlassian.connect.play.auth.frc.{
@@ -30,10 +27,8 @@ import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
 import org.scalatest.EitherValues
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
-import play.api.http.Status.UNAUTHORIZED
 import play.api.mvc.Results.BadRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsString, status}
 
 import java.security.interfaces.RSAPublicKey
 import java.security.{KeyPair, PrivateKey}
@@ -60,14 +55,17 @@ class AssociateAtlassianHostUserActionSpec
   val forgeProperties = new AtlassianForgeProperties(config)
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
-    ForgeInvocationContext(App("fake-installation-id",
-                               "fake-api-base-url",
-                               appId,
-                               1,
-                               Environment("fake-type", "fake-id"),
-                               Module("fake-type", "fake-key")),
-                           None,
-                           None)
+    ForgeInvocationContext(
+      App("fake-installation-id",
+          "fake-api-base-url",
+          appId,
+          "fake-app-version",
+          Environment("fake-type", "fake-id"),
+          Module("fake-type", "fake-key"),
+          None),
+      None,
+      None
+    )
 
   val keyId: String = "0e50fccb-239d-4991-a5db-dc850ba3f236"
   val keyPair: KeyPair = JwtTestHelper.generateKeyPair()

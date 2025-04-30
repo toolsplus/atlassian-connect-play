@@ -35,7 +35,7 @@ case class ForgeRemoteSignedForgeRemoteContextActionRefiner(
       authenticationProvider
         .authenticate(request.credentials)
         .map(ForgeRemoteContextRequest(_, request))
-        .leftMap(e => Unauthorized(s"JWT validation failed")))
+        .leftMap(e => Unauthorized(s"JWT validation failed: ${e.getMessage}")))
   }
 }
 

@@ -19,25 +19,36 @@ final case class Environment(`type`: String, id: String)
 final case class Module(`type`: String, key: String)
 
 /**
+  * Contains information about the license of the app. This field is only present for paid apps in the production environment.
+  * `license` is undefined for free apps, apps in DEVELOPMENT and STAGING environments, and apps that are not listed on
+  * the Atlassian Marketplace.
+  *
+  * @param isActive Specifies if the license is active.
+  */
+final case class License(isActive: Boolean)
+
+/**
   *
   * @param installationId Identifier for the specific installation of an app. This is the value that any remote storage should be keyed against.
   * @param apiBaseUrl Base URL where all product API requests should be routed
   * @param id Forge application ID matching the value in the Forge manifest.yml
-  * @param version Forge application version being invoked
+  * @param appVersion Forge application version being invoked
   * @param environment Information about the environment the app is running in
   * @param module Information about the module that initiated this remote call
+  * @param license Information about the license associated with the app. This field is only present for paid apps in the production environment.
   */
 final case class App(installationId: String,
                      apiBaseUrl: String,
                      id: String,
-                     version: Int,
+                     appVersion: String,
                      environment: Environment,
-                     module: Module)
+                     module: Module,
+                     license: Option[License])
 
 /**
   * Forge invocation context represents the payload included in the Forge Invocation Token (FIT).
   *
-  * The FIT payload includes details about the the invocation context of a Forge Remote call.
+  * The FIT payload includes details about the invocation context of a Forge Remote call.
   *
   * @param app Details about the app and installation context
   * @param context Context depending on how the app is using Forge Remote
