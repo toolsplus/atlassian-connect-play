@@ -27,14 +27,19 @@ class ForgeInvocationTokenProcessorSpec
     mock[ForgeJWSVerificationKeySelector]
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
-    ForgeInvocationContext(App("fake-installation-id",
-                               "fake-api-base-url",
-                               appId,
-                               1,
-                               Environment("fake-type", "fake-id"),
-                               Module("fake-type", "fake-key")),
-                           None,
-                           None)
+    ForgeInvocationContext(
+      App(
+        "fake-installation-id",
+        "fake-api-base-url",
+        appId,
+        "fake-app-version",
+        Environment("fake-type", "fake-id"),
+        Module("fake-type", "fake-key"),
+        Some(License(true))
+      ),
+      None,
+      None
+    )
 
   "Given a ForgeInvocationTokenProcessor" when {
 

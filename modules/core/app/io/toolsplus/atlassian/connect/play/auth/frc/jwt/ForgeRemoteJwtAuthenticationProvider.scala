@@ -56,8 +56,10 @@ class ForgeRemoteJwtAuthenticationProvider @Inject()(
 
   private def decodeForgeInvocationTokenPayload(fitPayload: String)
     : Either[JwtAuthenticationError, ForgeInvocationContext] =
-    decode[ForgeInvocationContext](fitPayload).leftMap(e =>
-      InvalidJwtError(e.getMessage))
+    decode[ForgeInvocationContext](fitPayload).leftMap { e =>
+      logger.error(s"Decoding of JWT failed: $e")
+      InvalidJwtError(e.getMessage)
+    }
 
   private def verifyJwt(credentials: ForgeRemoteCredentials,
                         invocationContext: ForgeInvocationContext)

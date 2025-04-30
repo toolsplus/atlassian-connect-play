@@ -36,14 +36,17 @@ class ForgeRemoteJWKSourceProviderSpec extends TestSpec {
     mock[ForgeRemoteJWKSourceProvider]
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
-    ForgeInvocationContext(App("fake-installation-id",
-                               "fake-api-base-url",
-                               "fake-id",
-                               1,
-                               Environment("fake-type", "fake-id"),
-                               Module("fake-type", "fake-key")),
-                           None,
-                           None)
+    ForgeInvocationContext(
+      App("fake-installation-id",
+          "fake-api-base-url",
+          "fake-id",
+          "fake-app-version",
+          Environment("fake-type", "fake-id"),
+          Module("fake-type", "fake-key"),
+          None),
+      None,
+      None
+    )
 
   "Given a ForgeRemoteJWKSourceProvider" when {
 
