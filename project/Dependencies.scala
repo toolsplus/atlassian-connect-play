@@ -1,4 +1,4 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
   val core = Seq(
@@ -22,19 +22,19 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.3.0"
-  val cats = "2.12.0"
-  val circe = "0.14.7"
+  val atlassianJwt = "0.3.1"
+  val cats = "2.13.0"
+  val circe = "0.14.14"
   val playCirce = "3014.1"
-  val scalaUri = "4.0.3"
-  val sttp = "3.9.6"
-  val nimbusJoseJwt = "9.39.3"
-  val scalaTest = "3.2.18"
-  val scalaTestPlusPlay = "7.0.1"
+  val scalaUri = "4.2.0"
+  val sttp = "3.11.0"
+  val nimbusJoseJwt = "10.4.1"
+  val scalaTest = "3.2.19"
+  val scalaTestPlusPlay = "7.0.2"
   val scalaTestPlusScalaCheck = "3.2.18.0"
-  val scalaMock = "6.0.0"
-  val scalaCheck = "1.18.0"
-  val pekkoTestKit = "1.0.2"
+  val scalaMock = "7.4.1"
+  val scalaCheck = "1.18.1"
+  val pekkoTestKit = "1.0.3"
 }
 
 object Library {
@@ -45,7 +45,7 @@ object Library {
   val circeGeneric = "io.circe" %% "circe-generic" % Version.circe
   val circeParser = "io.circe" %% "circe-parser" % Version.circe
   val circePlay = "com.dripower" %% "play-circe" % Version.playCirce
-  val scalaUri = "io.lemonlabs" %% "scala-uri" % Version.scalaUri
+  val scalaUri = "com.indoorvivants" %% "scala-uri" % Version.scalaUri
   val sttp = "com.softwaremill.sttp.client3" %% "core" % Version.sttp
   val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % Version.nimbusJoseJwt
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest

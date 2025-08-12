@@ -13,7 +13,8 @@ CREATE TABLE atlassian_host
     product_type               VARCHAR             NOT NULL,
     description                VARCHAR             NOT NULL,
     service_entitlement_number VARCHAR,
-    installed                  VARCHAR             NOT NULL
+    installed                  BOOLEAN             NOT NULL,
+    ttl                        TIMESTAMP,
 );
 CREATE UNIQUE INDEX uq_ac_host_client_key
     ON atlassian_host (client_key);

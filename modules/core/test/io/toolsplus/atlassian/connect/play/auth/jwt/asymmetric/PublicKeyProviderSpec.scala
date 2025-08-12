@@ -2,7 +2,7 @@ package io.toolsplus.atlassian.connect.play.auth.jwt.asymmetric
 
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.auth.jwt.InvalidJwtError
-import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
+import io.toolsplus.atlassian.connect.play.models.PlayAtlassianConnectProperties
 import io.toolsplus.atlassian.jwt.generators.util.JwtTestHelper
 import org.scalatest.EitherValues
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -24,8 +24,9 @@ class PublicKeyProviderSpec
     with GuiceOneAppPerSuite
     with EitherValues {
 
-  val connectProperties = new AtlassianConnectProperties(
-    Configuration("atlassian.connect.publicKeyHostBaseUrl" -> ""))
+  val connectProperties = new PlayAtlassianConnectProperties(
+    Configuration("atlassian.connect.publicKeyHostBaseUrl" -> "")
+  )
 
   val keyPair: KeyPair = JwtTestHelper.generateKeyPair()
   val publicKey: RSAPublicKey = keyPair.getPublic.asInstanceOf[RSAPublicKey]
@@ -47,7 +48,8 @@ class PublicKeyProviderSpec
           val result =
             Await.result(provider.fetchPublicKey("notFound"), 10.seconds)
           result.left.value mustBe InvalidJwtError(
-            s"Failed to find public key for keyId 'notFound'")
+            s"Failed to find public key for keyId 'notFound'"
+          )
       }
 
       "fail to fetch an if key server returns unexpected error" in withPublicKeyProvider {

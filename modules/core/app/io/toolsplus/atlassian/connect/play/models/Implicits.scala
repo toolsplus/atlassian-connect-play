@@ -9,15 +9,17 @@ object Implicits {
 
   import scala.language.implicitConversions
 
-  /**
-    * Implicitly convert an instance of [[LifecycleEvent]] to an instance of
+  /** Implicitly convert an instance of [[LifecycleEvent]] to an instance of
     * AtlassianHost.
     *
-    * @param e Lifecycle event instance.
-    * @return Atlassian host instance extracted from lifecycle event.
+    * @param e
+    *   Lifecycle event instance.
+    * @return
+    *   Atlassian host instance extracted from lifecycle event.
     */
-  implicit def installedEventToAtlassianHost(
-      implicit e: InstalledEvent): AtlassianHost =
+  implicit def installedEventToAtlassianHost(implicit
+      e: InstalledEvent
+  ): AtlassianHost =
     DefaultAtlassianHost(
       e.clientKey,
       e.key,
@@ -32,7 +34,8 @@ object Implicits {
       e.serviceEntitlementNumber,
       e.entitlementId,
       e.entitlementNumber,
-      installed = true
+      installed = true,
+      ttl = None
     )
 
 }

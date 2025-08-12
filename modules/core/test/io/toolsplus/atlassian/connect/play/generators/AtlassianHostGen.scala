@@ -1,8 +1,15 @@
 package io.toolsplus.atlassian.connect.play.generators
 
-import io.toolsplus.atlassian.connect.play.api.models.{DefaultAtlassianHost, DefaultAtlassianHostUser}
+import com.fortysevendeg.scalacheck.datetime.GenDateTime.genDateTimeWithinRange
+import io.toolsplus.atlassian.connect.play.api.models.{
+  DefaultAtlassianHost,
+  DefaultAtlassianHostUser
+}
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
+import com.fortysevendeg.scalacheck.datetime.instances.jdk8._
+
+import java.time.{Duration, Instant}
 
 trait AtlassianHostGen extends SecurityContextGen {
 
@@ -10,6 +17,11 @@ trait AtlassianHostGen extends SecurityContextGen {
     for {
       securityContext <- securityContextGen
       installed <- oneOf(true, false)
+      ttl <-
+        if (installed) const(None)
+        else
+          genDateTimeWithinRange(Instant.now(), Duration.ofDays(30))
+            .map(Some(_))
     } yield {
       DefaultAtlassianHost(
         securityContext.clientKey,
@@ -25,7 +37,8 @@ trait AtlassianHostGen extends SecurityContextGen {
         securityContext.serviceEntitlementNumber,
         securityContext.entitlementId,
         securityContext.entitlementNumber,
-        installed
+        installed,
+        ttl
       )
     }
 
