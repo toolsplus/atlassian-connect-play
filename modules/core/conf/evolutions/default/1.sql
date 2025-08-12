@@ -14,7 +14,7 @@ CREATE TABLE atlassian_host
     description                VARCHAR             NOT NULL,
     service_entitlement_number VARCHAR,
     installed                  BOOLEAN             NOT NULL,
-    ttl                        TIMESTAMP WITH TIME ZONE,
+    ttl                        TIMESTAMP
 );
 CREATE UNIQUE INDEX uq_ac_host_client_key
     ON atlassian_host (client_key);
