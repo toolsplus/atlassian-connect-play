@@ -4,8 +4,16 @@ import io.lemonlabs.uri.Url
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.api.repositories.AtlassianHostRepository
 import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalUriHttpRequest
-import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator.{BaseUrlMismatchError, InvalidSecretKey, JwtGeneratorError, RelativeUriError}
-import io.toolsplus.atlassian.connect.play.models.{AtlassianConnectProperties, PlayAddonProperties}
+import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator.{
+  BaseUrlMismatchError,
+  InvalidSecretKey,
+  JwtGeneratorError,
+  RelativeUriError
+}
+import io.toolsplus.atlassian.connect.play.models.{
+  PlayAddonProperties,
+  PlayAtlassianConnectProperties
+}
 import io.toolsplus.atlassian.jwt._
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
 import io.toolsplus.atlassian.jwt.symmetric.SymmetricJwtReader
@@ -22,7 +30,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
   val config: Configuration = app.configuration
 
   val addonProperties = new PlayAddonProperties(config)
-  val connectProperties = new AtlassianConnectProperties(config)
+  val connectProperties = new PlayAtlassianConnectProperties(config)
 
   val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
 
@@ -94,9 +102,11 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         forAll(methodGen, rootRelativePathGen, atlassianHostGen) {
           (method, relativePath, host) =>
             val result =
-              jwtGenerator.createJwtToken(method,
-                                          URI.create(relativePath),
-                                          host)
+              jwtGenerator.createJwtToken(
+                method,
+                URI.create(relativePath),
+                host
+              )
             result mustBe Left(RelativeUriError)
         }
       }
@@ -111,16 +121,17 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         }
       }
 
-      "fail if secret key is less than 256 bits" in forAll(methodGen,
-                                                           rootRelativePathGen,
-                                                           atlassianHostGen) {
-        (method, relativePath, randomHost) =>
-          val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
-          val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
-          val result =
-            jwtGenerator.createJwtToken(method, absoluteUri, hostWithInvalidKey)
+      "fail if secret key is less than 256 bits" in forAll(
+        methodGen,
+        rootRelativePathGen,
+        atlassianHostGen
+      ) { (method, relativePath, randomHost) =>
+        val absoluteUri = absoluteHostUri(randomHost.baseUrl, relativePath)
+        val hostWithInvalidKey = randomHost.copy(sharedSecret = "INVALID")
+        val result =
+          jwtGenerator.createJwtToken(method, absoluteUri, hostWithInvalidKey)
 
-          result mustBe Left(InvalidSecretKey)
+        result mustBe Left(InvalidSecretKey)
       }
 
     }
@@ -132,7 +143,8 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
     val base = Url.parse(baseUrl)
     val relative = Url.parse(relativePath)
     URI.create(
-      base.withPath(base.path.addParts(relative.path.parts)).toString())
+      base.withPath(base.path.addParts(relative.path.parts)).toString()
+    )
   }
 
   private def tokenPropertyTest(assertion: Jwt => Assertion) =
@@ -143,8 +155,9 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
         validate(assertion)(result)
     }
 
-  private def validate(assertion: Jwt => Assertion)(
-      result: Either[JwtGeneratorError, RawJwt]) = {
+  private def validate(
+      assertion: Jwt => Assertion
+  )(result: Either[JwtGeneratorError, RawJwt]) = {
     result match {
       case Right(rawJwt) =>
         JwtParser.parse(rawJwt) match {

@@ -3,8 +3,8 @@ package io.toolsplus.atlassian.connect.play.request.sttp.jwt
 import io.toolsplus.atlassian.connect.play.TestSpec
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator
 import io.toolsplus.atlassian.connect.play.models.{
-  AtlassianConnectProperties,
-  PlayAddonProperties
+  PlayAddonProperties,
+  PlayAtlassianConnectProperties
 }
 import io.toolsplus.atlassian.connect.play.request.sttp.AtlassianHostRequest.atlassianHostRequest
 import org.scalatest.OptionValues
@@ -28,7 +28,7 @@ class JwtSignatureSttpBackendSpec
 
   val config: Configuration = app.configuration
   val addonProperties = new PlayAddonProperties(config)
-  val connectProperties = new AtlassianConnectProperties(config)
+  val connectProperties = new PlayAtlassianConnectProperties(config)
 
   val jwtGenerator =
     new JwtGenerator(addonProperties, connectProperties)
@@ -43,13 +43,16 @@ class JwtSignatureSttpBackendSpec
     "sending a request without an associated host" should {
       "fail with a host not configured message" in {
         val backend: JwtSignatureSttpBackend[Future, Any] =
-          new JwtSignatureSttpBackend[Future, Any](always200Backend,
-                                                   jwtGenerator)
+          new JwtSignatureSttpBackend[Future, Any](
+            always200Backend,
+            jwtGenerator
+          )
         val response =
           basicRequest.get(relativeTestUrl).send(backend)
         whenReady(response.failed) { error =>
           error.getMessage must startWith(
-            "Failed to extract Atlassian host from request: No host configured.")
+            "Failed to extract Atlassian host from request: No host configured."
+          )
         }
       }
     }
@@ -57,8 +60,10 @@ class JwtSignatureSttpBackendSpec
     "sending a request with an invalid host" should {
       "fail with a invalid host message" in {
         val backend: JwtSignatureSttpBackend[Future, Any] =
-          new JwtSignatureSttpBackend[Future, Any](always200Backend,
-                                                   jwtGenerator)
+          new JwtSignatureSttpBackend[Future, Any](
+            always200Backend,
+            jwtGenerator
+          )
         val response =
           basicRequest
             .tag("ATLASSIAN_HOST", "not-an-atlassian-host")
@@ -66,7 +71,8 @@ class JwtSignatureSttpBackendSpec
             .send(backend)
         whenReady(response.failed) { error =>
           error.getMessage must startWith(
-            "Failed to extract Atlassian host from request: Invalid host type")
+            "Failed to extract Atlassian host from request: Invalid host type"
+          )
         }
       }
     }
@@ -76,8 +82,10 @@ class JwtSignatureSttpBackendSpec
         forAll(atlassianHostGen) { host =>
           val recordingBackend = new RecordingSttpBackend(always200Backend)
           val backend: JwtSignatureSttpBackend[Future, Any] =
-            new JwtSignatureSttpBackend[Future, Any](recordingBackend,
-                                                     jwtGenerator)
+            new JwtSignatureSttpBackend[Future, Any](
+              recordingBackend,
+              jwtGenerator
+            )
           val response =
             atlassianHostRequest(host)
               .get(relativeTestUrl)
@@ -95,8 +103,10 @@ class JwtSignatureSttpBackendSpec
         forAll(atlassianHostGen) { host =>
           val recordingBackend = new RecordingSttpBackend(always200Backend)
           val backend: JwtSignatureSttpBackend[Future, Any] =
-            new JwtSignatureSttpBackend[Future, Any](recordingBackend,
-                                                     jwtGenerator)
+            new JwtSignatureSttpBackend[Future, Any](
+              recordingBackend,
+              jwtGenerator
+            )
           val response =
             atlassianHostRequest(host)
               .get(uri"${host.baseUrl}".withPath(relativeTestUrl.path))
@@ -112,17 +122,22 @@ class JwtSignatureSttpBackendSpec
 
       "fail to sign the request if the absolute URL host does not match the given host" in {
         val backend: JwtSignatureSttpBackend[Future, Any] =
-          new JwtSignatureSttpBackend[Future, Any](always200Backend,
-                                                   jwtGenerator)
+          new JwtSignatureSttpBackend[Future, Any](
+            always200Backend,
+            jwtGenerator
+          )
         forAll(atlassianHostGen) { host =>
           val response =
             atlassianHostRequest(host)
-              .get(uri"https://mismatch-host-base-url.atlassian.net".withPath(
-                relativeTestUrl.path))
+              .get(
+                uri"https://mismatch-host-base-url.atlassian.net"
+                  .withPath(relativeTestUrl.path)
+              )
               .send(backend)
           whenReady(response.failed) { error =>
             error.getMessage must startWith(
-              "Unexpected JWT error: The given URI is not under the base URL of the given host")
+              "Unexpected JWT error: The given URI is not under the base URL of the given host"
+            )
           }
         }
       }

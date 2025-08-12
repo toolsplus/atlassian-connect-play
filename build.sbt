@@ -1,8 +1,9 @@
-import ReleaseTransformations._
+import ReleaseTransformations.*
+import xerial.sbt.Sonatype.sonatypeCentralHost
 
 val commonSettings = Seq(
   organization := "io.toolsplus",
-  scalaVersion := "2.13.14",
+  scalaVersion := "2.13.16",
   versionScheme := Some("early-semver"),
   resolvers ++= Seq(
     Resolver.typesafeRepo("releases"),
@@ -18,19 +19,14 @@ lazy val publishSettings = Seq(
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   homepage := Some(url("https://github.com/toolsplus/atlassian-connect-play")),
   licenses := Seq(
-    "Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    "Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
   publishMavenStyle := true,
   Test / publishArtifact := false,
   pomIncludeRepository := { _ =>
     false
   },
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
+  ThisBuild / publishTo := sonatypePublishToBundle.value,
+  ThisBuild / sonatypeCredentialHost := sonatypeCentralHost,
   autoAPIMappings := true,
   scmInfo := Some(
     ScmInfo(
@@ -47,6 +43,7 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noPublishSettings = Seq(
+  publish / skip := true,
   publish := {},
   publishLocal := {},
   publishArtifact := false,
@@ -63,9 +60,9 @@ releaseProcess := Seq[ReleaseStep](
   commitReleaseVersion,
   tagRelease,
   releaseStepCommand("publishSigned"),
+  releaseStepCommand("sonatypeBundleRelease"),
   setNextVersion,
   commitNextVersion,
-  releaseStepCommand("sonatypeReleaseAll"),
   pushChanges
 )
 
@@ -82,12 +79,12 @@ lazy val `atlassian-connect-play` = project
     `atlassian-connect-play-api`,
     `atlassian-connect-play-core`
   )
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(noPublishSettings)
 
 lazy val `atlassian-connect-play-api` = project
   .in(file("modules/api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(publishSettings)
   .settings(moduleSettings(project))
 
@@ -96,8 +93,8 @@ lazy val `atlassian-connect-play-core` = project
   .enablePlugins(PlayScala)
   .settings(libraryDependencies ++= Dependencies.core)
   .settings(libraryDependencies ++= Seq(ws, guice))
-  .settings(commonSettings: _*)
-  .settings(scoverageSettings: _*)
+  .settings(commonSettings)
+  .settings(scoverageSettings)
   .settings(publishSettings)
   .settings(moduleSettings(project))
   .dependsOn(`atlassian-connect-play-api`)

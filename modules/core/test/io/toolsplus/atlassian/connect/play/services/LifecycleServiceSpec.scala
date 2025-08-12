@@ -11,9 +11,11 @@ import io.toolsplus.atlassian.connect.play.api.repositories.{
   AtlassianHostRepository,
   ForgeInstallationRepository
 }
+import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
 import io.toolsplus.atlassian.connect.play.models.Implicits._
 import org.scalacheck.Gen._
 
+import java.time.{Duration, Instant}
 import scala.concurrent.Future
 
 class LifecycleServiceSpec extends TestSpec {
@@ -21,9 +23,15 @@ class LifecycleServiceSpec extends TestSpec {
   val hostRepository: AtlassianHostRepository = mock[AtlassianHostRepository]
   val forgeInstallationRepository: ForgeInstallationRepository =
     mock[ForgeInstallationRepository]
+  val connectProperties: AtlassianConnectProperties =
+    mock[AtlassianConnectProperties]
 
   val lifecycleService =
-    new LifecycleService(hostRepository, forgeInstallationRepository)
+    new LifecycleService(
+      hostRepository,
+      forgeInstallationRepository,
+      connectProperties
+    )
 
   "A LifecycleService" when {
 
@@ -54,16 +62,21 @@ class LifecycleServiceSpec extends TestSpec {
             someInstalledEvent.copy(clientKey = clientKey)
           val newHost = installedEventToAtlassianHost(installedEvent)
           val maybeForgeInstallation = newHost.installationId.map(
-            DefaultForgeInstallation(_, newHost.clientKey))
+            DefaultForgeInstallation(_, newHost.clientKey)
+          )
 
           maybeForgeInstallation match {
             case Some(installation) =>
               (forgeInstallationRepository
-                .save(_: ForgeInstallation)) expects installation returning Future
+                .save(
+                  _: ForgeInstallation
+                )) expects installation returning Future
                 .successful(installation)
             case None =>
               (forgeInstallationRepository
-                .deleteByClientKey(_: String)) expects newHost.clientKey returning Future
+                .deleteByClientKey(
+                  _: String
+                )) expects newHost.clientKey returning Future
                 .successful(0)
           }
 
@@ -81,18 +94,66 @@ class LifecycleServiceSpec extends TestSpec {
 
     "asked to uninstall a host from an authenticated request" should {
 
-      "successfully mark Atlassian host as uninstalled" in {
+      "successfully mark Atlassian host as uninstalled with TTL" in {
+        val ttlDays = 30
         forAll(genericEventGen, atlassianHostUserGen) {
           (genericEvent, someHostUser) =>
             val clientKey = "clientKey"
-            val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
-                                                     clientKey = clientKey)
+            val uninstalledEvent = genericEvent.copy(
+              eventType = "uninstalled",
+              clientKey = clientKey
+            )
             val installedHost =
               someHostUser.host
                 .asInstanceOf[DefaultAtlassianHost]
                 .copy(clientKey = clientKey, installed = true)
-            val uninstalledHost = installedHost.copy(installed = false)
+            val ttl = Instant.now().plus(Duration.ofDays(ttlDays))
+            val uninstalledHost =
+              installedHost.copy(installed = false, ttl = Some(ttl))
             val installedHostUser = someHostUser.copy(host = installedHost)
+
+            (() => connectProperties.hostTTLDays)
+              .expects()
+              .returning(Some(ttlDays))
+
+            (hostRepository
+              .save(_: AtlassianHost))
+              .expects(where { host: AtlassianHost =>
+                // since the created host has a slightly different TTL,
+                // we cannot match against `uninstalledHost` directly
+                !host.installed && host.ttl.isDefined
+              })
+              .returning(
+                Future
+                  .successful(uninstalledHost)
+              )
+
+            val result = await {
+              lifecycleService
+                .uninstalled(uninstalledEvent, Some(installedHostUser))
+                .value
+            }
+            result mustBe Right(uninstalledHost)
+        }
+      }
+
+      "successfully mark Atlassian host as uninstalled without TTL" in {
+        forAll(genericEventGen, atlassianHostUserGen) {
+          (genericEvent, someHostUser) =>
+            val clientKey = "clientKey"
+            val uninstalledEvent = genericEvent.copy(
+              eventType = "uninstalled",
+              clientKey = clientKey
+            )
+            val installedHost =
+              someHostUser.host
+                .asInstanceOf[DefaultAtlassianHost]
+                .copy(clientKey = clientKey, installed = true)
+            val uninstalledHost =
+              installedHost.uninstalled(ttl = None)
+            val installedHostUser = someHostUser.copy(host = installedHost)
+
+            (() => connectProperties.hostTTLDays).expects().returning(None)
 
             (hostRepository
               .save(_: AtlassianHost)) expects uninstalledHost returning Future
@@ -111,13 +172,17 @@ class LifecycleServiceSpec extends TestSpec {
         forAll(genericEventGen, atlassianHostUserGen) {
           (genericEvent, someHostUser) =>
             val clientKey = "clientKeyA"
-            val uninstalledEvent = genericEvent.copy(eventType = "uninstalled",
-                                                     clientKey = "clientKeyB")
+            val uninstalledEvent = genericEvent.copy(
+              eventType = "uninstalled",
+              clientKey = "clientKeyB"
+            )
             val installedHost =
               someHostUser.host
                 .asInstanceOf[DefaultAtlassianHost]
                 .copy(clientKey = clientKey, installed = true)
             val installedHostUser = someHostUser.copy(host = installedHost)
+
+            (() => connectProperties.hostTTLDays).expects().returning(None)
 
             val result = await {
               lifecycleService
