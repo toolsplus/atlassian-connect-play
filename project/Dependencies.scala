@@ -22,7 +22,7 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.3.1"
+  val atlassianJwt = "0.3.2"
   val cats = "2.13.0"
   val circe = "0.14.14"
   val playCirce = "3014.1"
@@ -38,8 +38,10 @@ object Version {
 }
 
 object Library {
-  val atlassianJwtGenerators = "io.toolsplus" %% "atlassian-jwt-generators" % Version.atlassianJwt
-  val atlassianJwt = "io.toolsplus" %% "atlassian-jwt-core" % Version.atlassianJwt
+  val atlassianJwtGenerators =
+    "io.toolsplus" %% "atlassian-jwt-generators" % Version.atlassianJwt
+  val atlassianJwt =
+    "io.toolsplus" %% "atlassian-jwt-core" % Version.atlassianJwt
   val cats = "org.typelevel" %% "cats-core" % Version.cats
   val circeCore = "io.circe" %% "circe-core" % Version.circe
   val circeGeneric = "io.circe" %% "circe-generic" % Version.circe
@@ -49,9 +51,12 @@ object Library {
   val sttp = "com.softwaremill.sttp.client3" %% "core" % Version.sttp
   val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % Version.nimbusJoseJwt
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest
-  val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-17" % Version.scalaTestPlusScalaCheck
-  val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
+  val scalaTestPlusScalaCheck =
+    "org.scalatestplus" %% "scalacheck-1-17" % Version.scalaTestPlusScalaCheck
+  val scalaTestPlusPlay =
+    "org.scalatestplus.play" %% "scalatestplus-play" % Version.scalaTestPlusPlay
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck
-  val pekkoTestKit = "org.apache.pekko" %% "pekko-testkit" % Version.pekkoTestKit
+  val pekkoTestKit =
+    "org.apache.pekko" %% "pekko-testkit" % Version.pekkoTestKit
 }
