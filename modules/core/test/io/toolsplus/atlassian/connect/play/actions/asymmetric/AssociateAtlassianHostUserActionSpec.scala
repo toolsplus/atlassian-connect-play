@@ -16,6 +16,8 @@ import io.toolsplus.atlassian.connect.play.auth.frc.jwt.{
   Environment,
   ForgeInvocationContext,
   ForgeInvocationTokenGen,
+  Installation,
+  InstallationContext,
   Module
 }
 import io.toolsplus.atlassian.connect.play.auth.frc.{
@@ -51,18 +53,30 @@ class AssociateAtlassianHostUserActionSpec
           "remote.jwkSetStagingUrl" -> "fake-jwk-set-staging-url",
           "remote.jwkSetProductionUrl" -> "fake-jwk-set-production-url"
         )
-      ))
+      )
+    )
   val forgeProperties = new AtlassianForgeProperties(config)
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
     ForgeInvocationContext(
-      App("fake-installation-id",
-          "fake-api-base-url",
-          appId,
-          "fake-app-version",
-          Environment("fake-type", "fake-id"),
-          Module("fake-type", "fake-key"),
-          None),
+      App(
+        "fake-installation-id",
+        "fake-api-base-url",
+        appId,
+        "fake-app-version",
+        Environment("fake-type", "fake-id"),
+        Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
+        None
+      ),
       None,
       None
     )
@@ -82,34 +96,40 @@ class AssociateAtlassianHostUserActionSpec
     "AssociateAtlassianHostUserActionRefiner" should {
 
       val refiner: AssociateAtlassianHostUserActionRefiner =
-        AssociateAtlassianHostUserActionRefiner(mockHostRepository,
-                                                mockForgeInstallationRepository)
+        AssociateAtlassianHostUserActionRefiner(
+          mockHostRepository,
+          mockForgeInstallationRepository
+        )
 
       "successfully refine to ForgeRemoteAssociateAtlassianHostUserRequest" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
           val fakeClientKey = "fake-client-key"
           val fakeForgeInstallation = DefaultForgeInstallation(
             fakeForgeInvocationContext.app.installationId,
-            fakeClientKey)
+            fakeClientKey
+          )
           val mockHost = mock[AtlassianHost]
 
           (mockForgeInstallationRepository.findByInstallationId _)
@@ -125,31 +145,37 @@ class AssociateAtlassianHostUserActionSpec
           }
           result mustBe Right(
             ForgeRemoteAssociateAtlassianHostUserRequest(
-              DefaultAtlassianHostUser(mockHost,
-                                       fakeForgeInvocationContext.principal),
+              DefaultAtlassianHostUser(
+                mockHost,
+                fakeForgeInvocationContext.principal
+              ),
               forgeRemoteContextRequest
-            ))
+            )
+          )
         }
       }
 
       "fail to refine if no Connect mapping exists" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
@@ -166,29 +192,33 @@ class AssociateAtlassianHostUserActionSpec
 
       "fail to refine if Connect installation is missing" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
           val fakeClientKey = "fake-client-key"
           val fakeForgeInstallation = DefaultForgeInstallation(
             fakeForgeInvocationContext.app.installationId,
-            fakeClientKey)
+            fakeClientKey
+          )
 
           (mockForgeInstallationRepository.findByInstallationId _)
             .expects(fakeForgeInvocationContext.app.installationId)
@@ -211,33 +241,38 @@ class AssociateAtlassianHostUserActionSpec
       val refiner: AssociateMaybeAtlassianHostUserActionRefiner =
         AssociateMaybeAtlassianHostUserActionRefiner(
           mockHostRepository,
-          mockForgeInstallationRepository)
+          mockForgeInstallationRepository
+        )
 
       "successfully refine to ForgeRemoteAssociateMaybeAtlassianHostUserRequest" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
           val fakeClientKey = "fake-client-key"
           val fakeForgeInstallation = DefaultForgeInstallation(
             fakeForgeInvocationContext.app.installationId,
-            fakeClientKey)
+            fakeClientKey
+          )
           val mockHost = mock[AtlassianHost]
 
           (mockForgeInstallationRepository.findByInstallationId _)
@@ -254,31 +289,38 @@ class AssociateAtlassianHostUserActionSpec
           result mustBe Right(
             ForgeRemoteAssociateMaybeAtlassianHostUserRequest(
               Some(
-                DefaultAtlassianHostUser(mockHost,
-                                         fakeForgeInvocationContext.principal)),
+                DefaultAtlassianHostUser(
+                  mockHost,
+                  fakeForgeInvocationContext.principal
+                )
+              ),
               forgeRemoteContextRequest
-            ))
+            )
+          )
         }
       }
 
       "fail to refine if no Connect mapping exists" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
@@ -295,29 +337,33 @@ class AssociateAtlassianHostUserActionSpec
 
       "successfully refine to ForgeRemoteAssociateMaybeAtlassianHostUserRequest with no host if Connect installation is missing" in {
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
-          val forgeRemoteCredentials = ForgeRemoteCredentials("fake-trace-id",
-                                                              "fake-span-id",
-                                                              invocationToken,
-                                                              None,
-                                                              None)
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
+          val forgeRemoteCredentials = ForgeRemoteCredentials(
+            "fake-trace-id",
+            "fake-span-id",
+            invocationToken,
+            None,
+            None
+          )
 
           val forgeRemoteRequest =
             ForgeRemoteRequest(forgeRemoteCredentials, FakeRequest())
 
           val forgeRemoteContextRequest =
             ForgeRemoteContextRequest(
-              ForgeRemoteContext(fakeForgeInvocationContext,
-                                 forgeRemoteCredentials),
+              ForgeRemoteContext(
+                fakeForgeInvocationContext,
+                forgeRemoteCredentials
+              ),
               forgeRemoteRequest
             )
 
           val fakeClientKey = "fake-client-key"
           val fakeForgeInstallation = DefaultForgeInstallation(
             fakeForgeInvocationContext.app.installationId,
-            fakeClientKey)
+            fakeClientKey
+          )
 
           (mockForgeInstallationRepository.findByInstallationId _)
             .expects(fakeForgeInvocationContext.app.installationId)
@@ -334,7 +380,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteAssociateMaybeAtlassianHostUserRequest(
               None,
               forgeRemoteContextRequest
-            ))
+            )
+          )
 
         }
       }

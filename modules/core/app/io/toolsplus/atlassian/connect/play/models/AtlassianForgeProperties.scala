@@ -20,6 +20,9 @@ class AtlassianForgeProperties @Inject()(config: Configuration) {
   lazy val forgeRemoteJWKSetProductionUrl: String =
     atlassianForgeConfig.get[String]("remote.jwkSetProductionUrl")
 
+  lazy val systemAccessTokenExpiryLeewayMs: Int =
+    atlassianForgeConfig.get[Int]("systemAccessTokenExpiryLeewayMs")
+
   private lazy val atlassianForgeConfig =
     config.get[Configuration]("atlassian.forge")
 

@@ -35,6 +35,15 @@ class ForgeInvocationTokenProcessorSpec
         "fake-app-version",
         Environment("fake-type", "fake-id"),
         Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
         Some(License(true))
       ),
       None,
@@ -44,17 +53,18 @@ class ForgeInvocationTokenProcessorSpec
   "Given a ForgeInvocationTokenProcessor" when {
 
     val processor =
-      ForgeInvocationTokenProcessor.create(appId,
-                                           mockForgeJWSVerificationKeySelector)
+      ForgeInvocationTokenProcessor.create(
+        appId,
+        mockForgeJWSVerificationKeySelector
+      )
 
     "processing JWTs" should {
 
       "successfully validate Forge Invocation Tokens" in {
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { jwt =>
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { jwt =>
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)
             .returning(java.util.List.of(publicKey))
@@ -70,11 +80,14 @@ class ForgeInvocationTokenProcessorSpec
           signedAsymmetricJwtStringGen(
             keyId,
             privateKey,
-            Seq("iss" -> "invalid/issuer",
-                "aud" -> appId,
-                "jti" -> "d8a496253ec8c18a54631e4c82cbedd5d0ae8570",
-                "nbf" -> Date.from(ZonedDateTime.now.minusMinutes(5).toInstant))
-          )) { jwt =>
+            Seq(
+              "iss" -> "invalid/issuer",
+              "aud" -> appId,
+              "jti" -> "d8a496253ec8c18a54631e4c82cbedd5d0ae8570",
+              "nbf" -> Date.from(ZonedDateTime.now.minusMinutes(5).toInstant)
+            )
+          )
+        ) { jwt =>
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)
             .returning(java.util.List.of(publicKey))
@@ -83,7 +96,8 @@ class ForgeInvocationTokenProcessorSpec
 
           result.failed.get mustBe a[BadJWTException]
           result.failed.get.getMessage must include(
-            "JWT iss claim has value invalid/issuer, must be forge/invocation-token")
+            "JWT iss claim has value invalid/issuer, must be forge/invocation-token"
+          )
         }
       }
 
@@ -100,7 +114,8 @@ class ForgeInvocationTokenProcessorSpec
               "jti" -> "d8a496253ec8c18a54631e4c82cbedd5d0ae8570",
               "nbf" -> Date.from(ZonedDateTime.now.minusMinutes(5).toInstant)
             )
-          )) { jwt =>
+          )
+        ) { jwt =>
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)
             .returning(java.util.List.of(publicKey))
@@ -109,7 +124,8 @@ class ForgeInvocationTokenProcessorSpec
 
           result.failed.get mustBe a[BadJWTException]
           result.failed.get.getMessage must include(
-            s"JWT aud claim has value [$notTheAppId], must be [$appId]")
+            s"JWT aud claim has value [$notTheAppId], must be [$appId]"
+          )
         }
 
       }
@@ -134,7 +150,8 @@ class ForgeInvocationTokenProcessorSpec
 
           result.failed.get mustBe a[BadJWTException]
           result.failed.get.getMessage must include(
-            "JWT missing required claims: [jti, nbf]")
+            "JWT missing required claims: [jti, nbf]"
+          )
         }
 
       }

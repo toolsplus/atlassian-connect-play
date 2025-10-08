@@ -30,7 +30,8 @@ class ForgeRemoteJwtAuthenticationProviderSpec
           "remote.jwkSetStagingUrl" -> "fake-jwk-set-staging-url",
           "remote.jwkSetProductionUrl" -> "fake-jwk-set-production-url"
         )
-      ))
+      )
+    )
   val forgeProperties = new AtlassianForgeProperties(config)
 
   val keyId: String = "0e50fccb-239d-4991-a5db-dc850ba3f236"
@@ -50,6 +51,15 @@ class ForgeRemoteJwtAuthenticationProviderSpec
         "fake-app-version",
         Environment("fake-type", "fake-id"),
         Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
         Some(License(true))
       ),
       None,
@@ -59,25 +69,27 @@ class ForgeRemoteJwtAuthenticationProviderSpec
   val authenticationProvider =
     new ForgeRemoteJwtAuthenticationProvider(
       forgeProperties,
-      mockForgeJWSVerificationKeySelector)
+      mockForgeJWSVerificationKeySelector
+    )
 
   "Given a ForgeRemoteJwtAuthenticationProvider" when {
 
     "authenticate" should {
 
       def forgeRemoteCredentials(invocationToken: RawJwt) =
-        ForgeRemoteCredentials("fake-trace-id",
-                               "fake-span-id",
-                               invocationToken,
-                               None,
-                               None)
+        ForgeRemoteCredentials(
+          "fake-trace-id",
+          "fake-span-id",
+          invocationToken,
+          None,
+          None
+        )
 
       "successfully authenticate Forge Remote credentials" in {
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  privateKey)) { invocationToken =>
+          forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
+        ) { invocationToken =>
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)
             .returning(java.util.List.of(publicKey))
@@ -110,9 +122,12 @@ class ForgeRemoteJwtAuthenticationProviderSpec
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         val anotherKeyPair: KeyPair = JwtTestHelper.generateKeyPair()
         forAll(
-          forgeInvocationTokenGen(fakeForgeInvocationContext,
-                                  keyId,
-                                  anotherKeyPair.getPrivate)) {
+          forgeInvocationTokenGen(
+            fakeForgeInvocationContext,
+            keyId,
+            anotherKeyPair.getPrivate
+          )
+        ) {
 
           (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
             .expects(*, fakeForgeInvocationContext)

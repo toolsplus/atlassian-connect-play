@@ -23,7 +23,8 @@ class ForgeRemoteJWKSourceProviderSpec extends TestSpec {
           "remote.jwkSetStagingUrl" -> jwkSetStagingUrl,
           "remote.jwkSetProductionUrl" -> jwkSetProductionUrl
         )
-      ))
+      )
+    )
   val forgeProperties = new AtlassianForgeProperties(config)
 
   val keyPair1: KeyPair = JwtTestHelper.generateKeyPair()
@@ -37,13 +38,24 @@ class ForgeRemoteJWKSourceProviderSpec extends TestSpec {
 
   val fakeForgeInvocationContext: ForgeInvocationContext =
     ForgeInvocationContext(
-      App("fake-installation-id",
-          "fake-api-base-url",
-          "fake-id",
-          "fake-app-version",
-          Environment("fake-type", "fake-id"),
-          Module("fake-type", "fake-key"),
-          None),
+      App(
+        "fake-installation-id",
+        "fake-api-base-url",
+        "fake-id",
+        "fake-app-version",
+        Environment("fake-type", "fake-id"),
+        Module("fake-type", "fake-key"),
+        Installation(
+          "fake-installation-id",
+          Seq(
+            InstallationContext(
+              "fake-installation-context-name-1",
+              "fake-installation-context-url-1"
+            )
+          )
+        ),
+        None
+      ),
       None,
       None
     )
@@ -56,15 +68,21 @@ class ForgeRemoteJWKSourceProviderSpec extends TestSpec {
 
       "get staging JWK source" in {
         val result = jwkSourceProvider.getJWKSource(
-          fakeForgeInvocationContext.copy(app = fakeForgeInvocationContext.app
-            .copy(apiBaseUrl = "https://api.stg.atlassian.com/fake/url")))
+          fakeForgeInvocationContext.copy(app =
+            fakeForgeInvocationContext.app
+              .copy(apiBaseUrl = "https://api.stg.atlassian.com/fake/url")
+          )
+        )
         result mustBe a[JWKSource[_]]
       }
 
       "get production JWK source" in {
         val result = jwkSourceProvider.getJWKSource(
-          fakeForgeInvocationContext.copy(app = fakeForgeInvocationContext.app
-            .copy(apiBaseUrl = "https://api.atlassian.com/fake/url")))
+          fakeForgeInvocationContext.copy(app =
+            fakeForgeInvocationContext.app
+              .copy(apiBaseUrl = "https://api.atlassian.com/fake/url")
+          )
+        )
         result mustBe a[JWKSource[_]]
       }
     }
