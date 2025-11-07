@@ -19,33 +19,43 @@ import play.api.Logger
 import javax.inject.Inject
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Authentication provider that verifies requests signed by Forge Remote Compute.
+/** Authentication provider that verifies requests signed by Forge Remote
+  * Compute.
   */
-class ForgeRemoteJwtAuthenticationProvider @Inject()(
+class ForgeRemoteJwtAuthenticationProvider @Inject() (
     private val forgeProperties: AtlassianForgeProperties,
-    private val forgeJWSKeySelector: ForgeJWSVerificationKeySelector) {
+    private val forgeJWSKeySelector: ForgeJWSVerificationKeySelector
+) {
 
   private val logger = Logger(classOf[ForgeRemoteJwtAuthenticationProvider])
 
   private val fitProcessor = ForgeInvocationTokenProcessor.create(
     forgeProperties.appId,
-    forgeJWSKeySelector)
+    forgeJWSKeySelector
+  )
 
-  /**
-    * Authenticates the given Forge Remote credentials.
+  /** Authenticates the given Forge Remote credentials.
     *
-    * @param credentials Untrusted Forge Remote credentials
-    * @return Verified Forge Remote context associated with the given credentials, or an authentication error.
-    * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#verifying-a-asymmetric-jwt-token-for-install-callbacks
+    * @param credentials
+    *   Untrusted Forge Remote credentials
+    * @return
+    *   Verified Forge Remote context associated with the given credentials, or
+    *   an authentication error.
+    * @see
+    *   https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#verifying-a-asymmetric-jwt-token-for-install-callbacks
     */
-  def authenticate(credentials: ForgeRemoteCredentials)
-    : Either[JwtAuthenticationError, ForgeRemoteContext] = {
+  def authenticate(
+      credentials: ForgeRemoteCredentials
+  ): Either[JwtAuthenticationError, ForgeRemoteContext] = {
     for {
       jwt <- parseJwt(credentials.forgeInvocationToken)
       invocationContext <- decodeForgeInvocationTokenPayload(jwt.json)
       _ <- verifyJwt(credentials, invocationContext)
-    } yield ForgeRemoteContext(invocationContext, credentials)
+    } yield ForgeRemoteContext(
+      invocationContext,
+      credentials.traceId,
+      credentials.spanId
+    )
   }
 
   private def parseJwt(rawJwt: String): Either[JwtAuthenticationError, Jwt] =
@@ -54,23 +64,27 @@ class ForgeRemoteJwtAuthenticationProvider @Inject()(
       InvalidJwtError(e.getMessage())
     }
 
-  private def decodeForgeInvocationTokenPayload(fitPayload: String)
-    : Either[JwtAuthenticationError, ForgeInvocationContext] =
+  private def decodeForgeInvocationTokenPayload(
+      fitPayload: String
+  ): Either[JwtAuthenticationError, ForgeInvocationContext] =
     decode[ForgeInvocationContext](fitPayload).leftMap { e =>
       logger.error(s"Decoding of JWT failed: $e")
       InvalidJwtError(e.getMessage)
     }
 
-  private def verifyJwt(credentials: ForgeRemoteCredentials,
-                        invocationContext: ForgeInvocationContext)
-    : Either[JwtAuthenticationError, JWTClaimsSet] = {
+  private def verifyJwt(
+      credentials: ForgeRemoteCredentials,
+      invocationContext: ForgeInvocationContext
+  ): Either[JwtAuthenticationError, JWTClaimsSet] = {
     Try(
       fitProcessor
-        .process(credentials.forgeInvocationToken, invocationContext)) match {
+        .process(credentials.forgeInvocationToken, invocationContext)
+    ) match {
       case Success(claimSet) => Right(claimSet)
-      case Failure(e) =>
+      case Failure(e)        =>
         logger.error(
-          s"Reading and validating of Forge Invocation Token failed: $e")
+          s"Reading and validating of Forge Invocation Token failed: $e"
+        )
         Left(InvalidJwtError(e.getMessage))
     }
   }

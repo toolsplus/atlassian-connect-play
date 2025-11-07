@@ -119,7 +119,8 @@ class ForgeRemoteSignedForgeRemoteContextActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
