@@ -120,7 +120,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
@@ -174,7 +175,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
@@ -209,7 +211,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
@@ -263,7 +266,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
@@ -319,7 +323,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
@@ -354,7 +359,8 @@ class AssociateAtlassianHostUserActionSpec
             ForgeRemoteContextRequest(
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
-                forgeRemoteCredentials
+                forgeRemoteCredentials.traceId,
+                forgeRemoteCredentials.spanId,
               ),
               forgeRemoteRequest
             )
