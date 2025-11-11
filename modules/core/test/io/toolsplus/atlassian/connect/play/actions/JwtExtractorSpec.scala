@@ -36,7 +36,6 @@ class JwtExtractorSpec extends TestSpec {
       }
 
       "return None if request does not contain a token" in {
-        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           JwtExtractor.extractJwt(request) mustBe None
         }

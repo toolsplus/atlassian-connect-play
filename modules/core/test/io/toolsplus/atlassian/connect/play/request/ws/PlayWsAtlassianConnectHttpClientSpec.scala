@@ -43,7 +43,6 @@ class PlayWsAtlassianConnectHttpClientSpec
         }
 
       "set correct authorization and user-agent request headers" in {
-        implicit val doNotShrinkStrings: Shrink[String] = Shrink.shrinkAny
         forAll(atlassianHostGen) { host =>
           val path = "foo"
           forAll(symmetricJwtCredentialsGen(host, subject = "bar")) {

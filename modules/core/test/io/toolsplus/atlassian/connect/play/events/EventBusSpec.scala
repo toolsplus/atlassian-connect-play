@@ -35,8 +35,8 @@ class EventBusSpec
 
       "handle a subclass event" in new Context {
         val listener = system.actorOf(Props(new Actor {
-          def receive = {
-            case e => testProbe.ref ! e
+          def receive = { case e =>
+            testProbe.ref ! e
           }
         }))
 
@@ -51,8 +51,8 @@ class EventBusSpec
 
       "handle an event" in new Context {
         val listener = system.actorOf(Props(new Actor {
-          def receive = {
-            case e @ AppInstalledEvent(_) => testProbe.ref ! e
+          def receive = { case e @ AppInstalledEvent(_) =>
+            testProbe.ref ! e
           }
         }))
 
@@ -81,8 +81,8 @@ class EventBusSpec
 
       "differentiate between event classes" in new Context {
         val listener = system.actorOf(Props(new Actor {
-          def receive = {
-            case e @ AppInstalledEvent(_) => testProbe.ref ! e
+          def receive = { case e @ AppInstalledEvent(_) =>
+            testProbe.ref ! e
           }
         }))
 
@@ -93,9 +93,9 @@ class EventBusSpec
       }
 
       "not handle not subscribed events" in new Context {
-        val listener = system.actorOf(Props(new Actor {
-          def receive = {
-            case e @ AppInstalledEvent(_) => testProbe.ref ! e
+        system.actorOf(Props(new Actor {
+          def receive = { case e @ AppInstalledEvent(_) =>
+            testProbe.ref ! e
           }
         }))
 
@@ -110,13 +110,11 @@ class EventBusSpec
 
   trait Context {
 
-    /**
-      * Play actor system.
+    /** Play actor system.
       */
     lazy implicit val system: ActorSystem = app.injector.instanceOf[ActorSystem]
 
-    /**
-      * Test probe.
+    /** Test probe.
       */
     lazy val testProbe = TestProbe()
 

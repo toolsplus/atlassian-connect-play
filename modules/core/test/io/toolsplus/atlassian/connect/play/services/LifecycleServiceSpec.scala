@@ -118,7 +118,7 @@ class LifecycleServiceSpec extends TestSpec {
 
             (hostRepository
               .save(_: AtlassianHost))
-              .expects(where { host: AtlassianHost =>
+              .expects(where { (host: AtlassianHost) =>
                 // since the created host has a slightly different TTL,
                 // we cannot match against `uninstalledHost` directly
                 !host.installed && host.ttl.isDefined

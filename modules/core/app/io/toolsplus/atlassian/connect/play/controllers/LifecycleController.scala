@@ -8,20 +8,19 @@ import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalHttpRequestQshProvi
 import io.toolsplus.atlassian.connect.play.models.{GenericEvent, InstalledEvent}
 import io.toolsplus.atlassian.connect.play.services._
 import play.api.libs.circe.Circe
-import play.api.mvc.{Action, InjectedController}
+import play.api.mvc.{Action, BaseController, ControllerComponents}
 
 import scala.concurrent.ExecutionContext
 
-/**
-  * Controller that handles the app install and uninstall lifecycle
-  * callbacks.
+/** Controller that handles the app install and uninstall lifecycle callbacks.
   */
-class LifecycleController @Inject()(
+class LifecycleController @Inject() (
+    val controllerComponents: ControllerComponents,
     lifecycleService: LifecycleService,
     asymmetricallySignedAtlassianHostUserAction: AsymmetricallySignedAtlassianHostUserAction,
     appProperties: AppProperties,
-    implicit val executionContext: ExecutionContext)
-    extends InjectedController
+    implicit val executionContext: ExecutionContext
+) extends BaseController
     with Circe {
 
   def installed: Action[InstalledEvent] = {
@@ -30,14 +29,15 @@ class LifecycleController @Inject()(
       .async(circe.json[InstalledEvent]) { implicit request =>
         lifecycleService.installed(request.body).value map {
           case Right(_) => Ok
-          case Left(e) =>
+          case Left(e)  =>
             e match {
               case MissingAtlassianHostError      => BadRequest
               case InvalidLifecycleEventTypeError => BadRequest
               case HostForbiddenError             => Forbidden
-              case MissingJwtError =>
+              case MissingJwtError                =>
                 Unauthorized.withHeaders(
-                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}"""")
+                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}""""
+                )
             }
         }
       }
@@ -49,14 +49,15 @@ class LifecycleController @Inject()(
       .async(circe.json[GenericEvent]) { implicit request =>
         lifecycleService.uninstalled(request.body, request.hostUser).value map {
           case Right(_) => NoContent
-          case Left(e) =>
+          case Left(e)  =>
             e match {
               case MissingAtlassianHostError      => NoContent
               case InvalidLifecycleEventTypeError => BadRequest
               case HostForbiddenError             => Forbidden
-              case MissingJwtError =>
+              case MissingJwtError                =>
                 Unauthorized.withHeaders(
-                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}"""")
+                  WWW_AUTHENTICATE -> s"""JWT realm="${appProperties.key}""""
+                )
             }
         }
       }

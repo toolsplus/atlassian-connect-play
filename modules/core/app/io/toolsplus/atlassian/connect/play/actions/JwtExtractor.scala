@@ -1,7 +1,7 @@
 package io.toolsplus.atlassian.connect.play.actions
 
 import io.toolsplus.atlassian.connect.play.auth.jwt
-import io.toolsplus.atlassian.connect.play.auth.jwt.{CanonicalPlayHttpRequest, JwtCredentials, symmetric}
+import io.toolsplus.atlassian.connect.play.auth.jwt.JwtCredentials
 import play.api.http.HeaderNames
 import play.api.mvc.Request
 
@@ -16,11 +16,14 @@ object JwtExtractor {
     request.headers
       .get(HeaderNames.AUTHORIZATION)
       .filter(header =>
-        header.nonEmpty && header.startsWith(AuthorizationHeaderPrefix))
+        header.nonEmpty && header.startsWith(AuthorizationHeaderPrefix)
+      )
       .map(_.substring(AuthorizationHeaderPrefix.length).trim)
   }
 
-  private def extractJwtFromParameter[A](request: Request[A]): Option[String] = {
+  private def extractJwtFromParameter[A](
+      request: Request[A]
+  ): Option[String] = {
     request.getQueryString(QueryParameterName).filter(_.nonEmpty)
   }
 

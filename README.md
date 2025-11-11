@@ -3,7 +3,7 @@ Atlassian Connect Play
 
 [![Continuous integration](https://github.com/toolsplus/atlassian-connect-play/actions/workflows/ci.yml/badge.svg)](https://github.com/toolsplus/atlassian-connect-play/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/toolsplus/atlassian-connect-play/branch/master/graph/badge.svg)](https://codecov.io/gh/toolsplus/atlassian-connect-play)
-[![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_2.13.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_2.13)
+[![Maven Central](https://img.shields.io/maven-central/v/io.toolsplus/atlassian-connect-play-core_3.svg)](https://maven-badges.herokuapp.com/maven-central/io.toolsplus/atlassian-connect-play-core_3)
 
 
 This project contains a [Play Scala](https://www.playframework.com/) based 
@@ -12,7 +12,7 @@ It serves as a starter for building Atlassian Connect add-ons for JIRA and Confl
 
 ## Quick start
 
-atlassian-connect-play is published to Maven Central for Scala 2.13 and Play 2.8.x, 
+atlassian-connect-play is published to Maven Central for Scala 3 and Play 3, 
 so you can just add the following to your build:
 
     libraryDependencies += "io.toolsplus" %% "atlassian-connect-play" % "x.x.x"
