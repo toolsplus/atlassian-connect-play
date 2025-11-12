@@ -7,8 +7,6 @@ import io.toolsplus.atlassian.connect.play.api.models.{
 
 object Implicits {
 
-  import scala.language.implicitConversions
-
   /** Implicitly convert an instance of [[LifecycleEvent]] to an instance of
     * AtlassianHost.
     *

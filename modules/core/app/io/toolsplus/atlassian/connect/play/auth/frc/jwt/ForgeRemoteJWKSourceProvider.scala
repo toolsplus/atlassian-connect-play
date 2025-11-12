@@ -4,7 +4,7 @@ import com.nimbusds.jose.jwk.source.{JWKSource, JWKSourceBuilder}
 import com.nimbusds.jose.util.DefaultResourceRetriever
 import io.toolsplus.atlassian.connect.play.models.AtlassianForgeProperties
 
-import java.net.{URI, URL}
+import java.net.URI
 import javax.inject.Inject
 import ForgeRemoteJWKSourceProvider._
 

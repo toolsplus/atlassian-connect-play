@@ -51,14 +51,14 @@ class SymmetricJwtAuthenticationProviderSpec
         forAll(atlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
-          implicit val stringNoShrink: Shrink[String] =
-            Shrink.shrinkAny
           val customClaims = Seq("iss" -> host.clientKey)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             (hostRepository
-              .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+              .findByClientKey(
+                _: ClientKey
+              )) expects host.clientKey returning Future
               .successful(None)
 
             val result = await {
@@ -76,15 +76,13 @@ class SymmetricJwtAuthenticationProviderSpec
     "asked to authenticate Atlassian authenticated credentials" should {
 
       "fail if authenticated credentials' issuer does not exist" in {
-        implicit val stringNoShrink: Shrink[String] =
-          Shrink.shrinkAny
         forAll(atlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> null)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             val result = await {
               jwtAuthenticationProvider
                 .authenticate(credentials, "fake-qsh")
@@ -98,15 +96,13 @@ class SymmetricJwtAuthenticationProviderSpec
       }
 
       "fail if credentials' signature is not valid" in {
-        implicit val stringNoShrink: Shrink[String] =
-          Shrink.shrinkAny
         forAll(atlassianHostGen) { aHost =>
           val host =
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> host.clientKey)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             val nCharsFromSignature = 4
             val invalidSignatureJwt =
               credentials.rawJwt.dropRight(nCharsFromSignature)
@@ -114,7 +110,9 @@ class SymmetricJwtAuthenticationProviderSpec
               credentials.copy(rawJwt = invalidSignatureJwt)
 
             (hostRepository
-              .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+              .findByClientKey(
+                _: ClientKey
+              )) expects host.clientKey returning Future
               .successful(Some(host))
 
             val result = await {
@@ -123,7 +121,8 @@ class SymmetricJwtAuthenticationProviderSpec
                 .value
             }
             result mustBe Left(
-              InvalidJwtError(invalidSignatureCredentials.rawJwt))
+              InvalidJwtError(invalidSignatureCredentials.rawJwt)
+            )
           }
         }
       }
@@ -136,10 +135,12 @@ class SymmetricJwtAuthenticationProviderSpec
             aHost.copy(sharedSecret = JwtTestHelper.defaultSigningSecret)
           val customClaims = Seq("iss" -> host.clientKey, "sub" -> subject)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             (hostRepository
-              .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+              .findByClientKey(
+                _: ClientKey
+              )) expects host.clientKey returning Future
               .successful(Some(host))
 
             val result = await {
@@ -161,10 +162,12 @@ class SymmetricJwtAuthenticationProviderSpec
           val customClaims =
             Seq("iss" -> host.clientKey, "sub" -> userAccountId)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             (hostRepository
-              .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+              .findByClientKey(
+                _: ClientKey
+              )) expects host.clientKey returning Future
               .successful(Some(host))
 
             val result = await {
@@ -173,7 +176,8 @@ class SymmetricJwtAuthenticationProviderSpec
                 .value
             }
             result mustBe Right(
-              DefaultAtlassianHostUser(host, Some(userAccountId)))
+              DefaultAtlassianHostUser(host, Some(userAccountId))
+            )
           }
         }
       }
@@ -190,17 +194,23 @@ class SymmetricJwtAuthenticationProviderSpec
             val customClaims =
               Seq("iss" -> host.clientKey, "sub" -> userAccountId, "qsh" -> qsh)
             forAll(
-              symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                         customClaims)) { credentials =>
+              symmetricJwtCredentialsGen(
+                secret = host.sharedSecret,
+                customClaims
+              )
+            ) { credentials =>
               (hostRepository
-                .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+                .findByClientKey(
+                  _: ClientKey
+                )) expects host.clientKey returning Future
                 .successful(Some(host))
 
               val result = await {
                 jwtAuthenticationProvider.authenticate(credentials, qsh).value
               }
               result mustBe Right(
-                DefaultAtlassianHostUser(host, Some(userAccountId)))
+                DefaultAtlassianHostUser(host, Some(userAccountId))
+              )
             }
         }
       }
@@ -216,17 +226,20 @@ class SymmetricJwtAuthenticationProviderSpec
           val customClaims =
             Seq("iss" -> host.clientKey, "sub" -> userAccountId, "qsh" -> qsh)
           forAll(
-            symmetricJwtCredentialsGen(secret = host.sharedSecret,
-                                       customClaims)) { credentials =>
+            symmetricJwtCredentialsGen(secret = host.sharedSecret, customClaims)
+          ) { credentials =>
             (hostRepository
-              .findByClientKey(_: ClientKey)) expects host.clientKey returning Future
+              .findByClientKey(
+                _: ClientKey
+              )) expects host.clientKey returning Future
               .successful(Some(host))
 
             val result = await {
               jwtAuthenticationProvider.authenticate(credentials, qsh).value
             }
             result mustBe Right(
-              DefaultAtlassianHostUser(host, Some(userAccountId)))
+              DefaultAtlassianHostUser(host, Some(userAccountId))
+            )
           }
         }
       }

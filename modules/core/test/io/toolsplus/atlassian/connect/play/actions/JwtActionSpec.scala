@@ -22,20 +22,19 @@ class JwtActionSpec extends TestSpec with EitherValues {
         implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(signedSymmetricJwtStringGen(), playRequestGen) {
           (rawJwt, request) =>
-            val jwtHeader = HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
+            val jwtHeader =
+              HeaderNames.AUTHORIZATION -> s"${JwtExtractor.AuthorizationHeaderPrefix} $rawJwt"
             val jwtRequest = request.withHeaders(jwtHeader)
             val jwtCredentials =
               jwt.JwtCredentials(rawJwt, CanonicalPlayHttpRequest(jwtRequest))
             val result = await {
               jwtActionRefiner.refine(jwtRequest)
             }
-            result mustBe Right(
-              JwtRequest(jwtCredentials, jwtRequest))
+            result mustBe Right(JwtRequest(jwtCredentials, jwtRequest))
         }
       }
 
       "fail to refine request if it does not contain a token" in {
-        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
         forAll(playRequestGen) { request =>
           val result = await {
             jwtActionRefiner.refine(request)

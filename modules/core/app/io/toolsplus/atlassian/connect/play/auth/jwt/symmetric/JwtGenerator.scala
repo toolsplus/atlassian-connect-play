@@ -1,7 +1,10 @@
 package io.toolsplus.atlassian.connect.play.auth.jwt.symmetric
 
 import cats.syntax.either._
-import io.toolsplus.atlassian.connect.play.api.models.{AppProperties, AtlassianHost}
+import io.toolsplus.atlassian.connect.play.api.models.{
+  AppProperties,
+  AtlassianHost
+}
 import io.toolsplus.atlassian.connect.play.auth.jwt.CanonicalUriHttpRequest
 import io.toolsplus.atlassian.connect.play.auth.jwt.symmetric.JwtGenerator._
 import io.toolsplus.atlassian.connect.play.models.AtlassianConnectProperties
@@ -14,35 +17,43 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
-/**
-  * JwtGenerator used to generated symmetrically signed JWTs to make requests from the
-  * app host to the Atlassian host.
+/** JwtGenerator used to generated symmetrically signed JWTs to make requests
+  * from the app host to the Atlassian host.
   *
-  * @param appProperties App properties of this app
-  * @param atlassianConnectProperties Atlassian Connect properties of this app
+  * @param appProperties
+  *   App properties of this app
+  * @param atlassianConnectProperties
+  *   Atlassian Connect properties of this app
   */
-class JwtGenerator @Inject()(
-                              appProperties: AppProperties,
-                              atlassianConnectProperties: AtlassianConnectProperties) {
+class JwtGenerator @Inject() (
+    appProperties: AppProperties,
+    atlassianConnectProperties: AtlassianConnectProperties
+) {
 
   private val logger = Logger(classOf[JwtGenerator])
 
-  /**
-    * Generates a JWT for the given Atlassian host and request details. This token
-    * can be used to make requests to the host itself.
+  /** Generates a JWT for the given Atlassian host and request details. This
+    * token can be used to make requests to the host itself.
     *
-    * Note that JWTs to send requests to an Atlassian host need to include a query string
-    * hash (QSH) claim. To compute the QSH this generator needs to know the HTTP request
-    * method and URI (including query string parameters) at token creation time.
+    * Note that JWTs to send requests to an Atlassian host need to include a
+    * query string hash (QSH) claim. To compute the QSH this generator needs to
+    * know the HTTP request method and URI (including query string parameters)
+    * at token creation time.
     *
-    * @param httpMethod HTTP method of the intended host request
-    * @param uri URI of the intended host request
-    * @param host Atlassian host the request is targeting
-    * @return JWT token for the specific host request defined by the input parameters
+    * @param httpMethod
+    *   HTTP method of the intended host request
+    * @param uri
+    *   URI of the intended host request
+    * @param host
+    *   Atlassian host the request is targeting
+    * @return
+    *   JWT token for the specific host request defined by the input parameters
     */
-  def createJwtToken(httpMethod: String,
-                     uri: URI,
-                     host: AtlassianHost): Either[JwtGeneratorError, RawJwt] =
+  def createJwtToken(
+      httpMethod: String,
+      uri: URI,
+      host: AtlassianHost
+  ): Either[JwtGeneratorError, RawJwt] =
     for {
       absoluteUri <- assertUriAbsolute(uri)
       uriToHost <- assertRequestToHost(absoluteUri, host)
@@ -52,17 +63,21 @@ class JwtGenerator @Inject()(
   private def internalCreateJwtToken(
       httpMethod: String,
       uri: URI,
-      host: AtlassianHost): Either[JwtGeneratorError, RawJwt] = {
+      host: AtlassianHost
+  ): Either[JwtGeneratorError, RawJwt] = {
     val hostContextPath = Option(URI.create(host.baseUrl).getPath)
     val canonicalHttpRequest =
       CanonicalUriHttpRequest(httpMethod, uri, hostContextPath)
     logger.trace(
-      s"Generating JWT with canonical request: $canonicalHttpRequest")
+      s"Generating JWT with canonical request: $canonicalHttpRequest"
+    )
     val queryHash =
       HttpRequestCanonicalizer.computeCanonicalRequestHash(canonicalHttpRequest)
 
-    val expireAfter = Duration.of(atlassianConnectProperties.jwtExpirationTime,
-                                  ChronoUnit.SECONDS)
+    val expireAfter = Duration.of(
+      atlassianConnectProperties.jwtExpirationTime,
+      ChronoUnit.SECONDS
+    )
 
     for {
       sharedSecret <- assertSecretKeyLessThan256Bits(host.sharedSecret)
@@ -74,7 +89,9 @@ class JwtGenerator @Inject()(
     } yield jwt
   }
 
-  private def assertSecretKeyLessThan256Bits(secretKey: String): Either[JwtGeneratorError, String] =
+  private def assertSecretKeyLessThan256Bits(
+      secretKey: String
+  ): Either[JwtGeneratorError, String] =
     if (secretKey.getBytes.length < (256 / 8)) Left(InvalidSecretKey)
     else Right(secretKey)
 
@@ -84,7 +101,8 @@ class JwtGenerator @Inject()(
 
   private def assertRequestToHost(
       uri: URI,
-      host: AtlassianHost): Either[JwtGeneratorError, URI] = {
+      host: AtlassianHost
+  ): Either[JwtGeneratorError, URI] = {
     if (AtlassianHostUriResolver.isRequestToHost(uri, host)) Right(uri)
     else Left(BaseUrlMismatchError)
   }
@@ -97,11 +115,11 @@ object JwtGenerator {
     def message: String
   }
 
-  final case object RelativeUriError extends JwtGeneratorError {
+  case object RelativeUriError extends JwtGeneratorError {
     override val message: String = "The given URI is not absolute"
   }
 
-  final case object BaseUrlMismatchError extends JwtGeneratorError {
+  case object BaseUrlMismatchError extends JwtGeneratorError {
     override val message: String =
       "The given URI is not under the base URL of the given host"
   }
@@ -115,7 +133,7 @@ object JwtGenerator {
       s"No Atlassian host found for the given URI $uri"
   }
 
-  final case object InvalidSecretKey extends JwtGeneratorError {
+  case object InvalidSecretKey extends JwtGeneratorError {
     override def message = "Secret key must be more than 256 bits"
   }
 

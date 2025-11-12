@@ -55,7 +55,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "set token expiry based on configured 'jwtExpirationTime'" in {
-        tokenPropertyTest { jwt: Jwt =>
+        tokenPropertyTest { (jwt: Jwt) =>
           val now = System.currentTimeMillis / 1000
           val expiry = jwt.claims.getExpirationTime.getTime / 1000
           val expectedExpiry = now + connectProperties.jwtExpirationTime
@@ -64,7 +64,7 @@ class JwtGeneratorSpec extends TestSpec with GuiceOneAppPerSuite {
       }
 
       "set token issuer to add-on key" in {
-        tokenPropertyTest { jwt: Jwt =>
+        tokenPropertyTest { (jwt: Jwt) =>
           jwt.iss mustBe addonProperties.key
         }
       }
