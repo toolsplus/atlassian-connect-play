@@ -95,9 +95,7 @@ class ForgeInvocationTokenProcessorSpec
           val result = Try(processor.process(jwt, fakeForgeInvocationContext))
 
           result.failed.get mustBe a[BadJWTException]
-          result.failed.get.getMessage must include(
-            "JWT iss claim has value invalid/issuer, must be forge/invocation-token"
-          )
+          result.failed.get.getMessage must include("JWT iss claim value rejected")
         }
       }
 
@@ -123,9 +121,7 @@ class ForgeInvocationTokenProcessorSpec
           val result = Try(processor.process(jwt, fakeForgeInvocationContext))
 
           result.failed.get mustBe a[BadJWTException]
-          result.failed.get.getMessage must include(
-            s"JWT aud claim has value [$notTheAppId], must be [$appId]"
-          )
+          result.failed.get.getMessage must include("JWT aud claim value rejected")
         }
 
       }
