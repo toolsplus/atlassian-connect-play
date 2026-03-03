@@ -22,19 +22,19 @@ object Dependencies {
 }
 
 object Version {
-  val atlassianJwt = "0.4.0"
+  val atlassianJwt = "0.4.1"
   val cats = "2.13.0"
-  val circe = "0.14.14"
+  val circe = "0.14.15"
   val playCirce = "3014.1"
   val scalaUri = "4.2.0"
   val sttp = "3.11.0"
-  val nimbusJoseJwt = "10.5"
+  val nimbusJoseJwt = "10.8"
   val scalaTest = "3.2.19"
   val scalaTestPlusPlay = "7.0.2"
   val scalaTestPlusScalaCheck = "3.2.18.0"
-  val scalaMock = "7.4.1"
-  val scalaCheck = "1.18.1"
-  val pekkoTestKit = "1.0.3"
+  val scalaMock = "7.5.5"
+  val scalaCheck = "1.19.0"
+  val pekko = "1.0.3"
 }
 
 object Library {
@@ -58,5 +58,5 @@ object Library {
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck
   val pekkoTestKit =
-    "org.apache.pekko" %% "pekko-testkit" % Version.pekkoTestKit
+    "org.apache.pekko" %% "pekko-testkit" % Version.pekko
 }
