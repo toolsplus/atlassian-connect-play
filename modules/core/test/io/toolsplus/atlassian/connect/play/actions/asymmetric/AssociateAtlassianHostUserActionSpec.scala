@@ -121,7 +121,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
@@ -176,7 +176,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
@@ -188,7 +188,7 @@ class AssociateAtlassianHostUserActionSpec
           val result = await {
             refiner.refine(forgeRemoteContextRequest)
           }
-          result mustBe Left(BadRequest(s"Missing Connect mapping"))
+          result mustBe Left(BadRequest("Missing Connect installation"))
         }
       }
 
@@ -212,7 +212,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
@@ -267,7 +267,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
@@ -304,7 +304,7 @@ class AssociateAtlassianHostUserActionSpec
         }
       }
 
-      "fail to refine if no Connect mapping exists" in {
+      "successfully refine to ForgeRemoteAssociateMaybeAtlassianHostUserRequest if no Connect mapping exists" in {
         forAll(
           forgeInvocationTokenGen(fakeForgeInvocationContext, keyId, privateKey)
         ) { invocationToken =>
@@ -324,7 +324,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
@@ -336,7 +336,12 @@ class AssociateAtlassianHostUserActionSpec
           val result = await {
             refiner.refine(forgeRemoteContextRequest)
           }
-          result mustBe Left(BadRequest(s"Missing Connect mapping"))
+          result mustBe Right(
+            ForgeRemoteAssociateMaybeAtlassianHostUserRequest(
+              None,
+              forgeRemoteContextRequest
+            )
+          )
         }
       }
 
@@ -360,7 +365,7 @@ class AssociateAtlassianHostUserActionSpec
               ForgeRemoteContext(
                 fakeForgeInvocationContext,
                 forgeRemoteCredentials.traceId,
-                forgeRemoteCredentials.spanId,
+                forgeRemoteCredentials.spanId
               ),
               forgeRemoteRequest
             )
