@@ -43,10 +43,12 @@ trait AbstractAssociateAtlassianHostUserActionRefiner[R[A] <: WrappedRequest[A]]
             .findByClientKey(installation.clientKey)
             .map(hostSearchResultToActionResult(_, request))
         case None =>
-          logger.error(
-            s"Failed to associate Connect host to Forge Remote Compute invocation: No host mapping for installation id $installationId found"
+          logger.info(
+            s"Could not associate Connect host to Forge Remote Compute invocation: No host mapping for installation id $installationId found. This is probably a pure Forge installation"
           )
-          Future.successful(Left(BadRequest(s"Missing Connect mapping")))
+          Future.successful(
+            hostSearchResultToActionResult(None, request)
+          )
       })
   }
 }
