@@ -1,6 +1,7 @@
 package io.toolsplus.atlassian.connect.play.auth.frc.jwt
 
 import com.nimbusds.jose.proc.SecurityContext
+import io.circe.Decoder
 import io.circe.JsonObject
 
 /** Environment provides information about the Forge environment the app is
@@ -54,10 +55,27 @@ final case class Installation(id: String, contexts: Seq[InstallationContext])
   * in a request. Refer to the following post for details:
   * https://community.developer.atlassian.com/t/is-the-forge-invocation-token-contract-correct/91578/3
   *
-  * @param isActive
+  * @param active
   *   Specifies if the license is active.
   */
-final case class License(isActive: Boolean)
+final case class License(active: Boolean)
+
+object License {
+  // Atlassian: "The license objects in app context and FIT have a new `active`
+  // flag." `active` replaces the deprecated `isActive` flag.
+  // https://developer.atlassian.com/changelog/#CHANGE-3155
+  // Remove the `isActive` fallback after its deprecation date: October 17, 2026.
+  implicit val decoder: Decoder[License] = Decoder.instance { cursor =>
+    cursor.downField("active").as[Option[Boolean]].flatMap {
+      case Some(active) => Right(License(active = active))
+      case None         =>
+        cursor
+          .downField("isActive")
+          .as[Boolean]
+          .map(isActive => License(active = isActive))
+    }
+  }
+}
 
 /** @param installationId
   *   Identifier for the specific installation of an app. This is the value that

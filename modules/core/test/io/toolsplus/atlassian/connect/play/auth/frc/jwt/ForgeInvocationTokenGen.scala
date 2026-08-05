@@ -15,7 +15,8 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
       invocationContext: ForgeInvocationContext,
       keyId: String,
       privateKey: PrivateKey,
-      customClaims: Seq[(String, Any)] = Seq.empty
+      customClaims: Seq[(String, Any)] = Seq.empty,
+      licenseFieldsOverride: Option[Map[String, Boolean]] = None
   ): Gen[RawJwt] =
     for {
       jti <- Gen.alphaNumStr
@@ -28,7 +29,7 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
           "jti" -> jti,
           "nbf" -> Date
             .from(ZonedDateTime.now.minusMinutes(5).toInstant),
-          "app" -> toJson(invocationContext.app)
+          "app" -> toJson(invocationContext.app, licenseFieldsOverride)
         ) ++ Seq(
           "context" -> invocationContext.context,
           "principal" -> invocationContext.principal
@@ -49,8 +50,11 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
     * @param app
     *   App instance to convert
     */
-  private def toJson(app: App) = {
-    Map(
+  private def toJson(
+      app: App,
+      licenseFieldsOverride: Option[Map[String, Boolean]]
+  ) = {
+    val appFields: Map[String, Any] = Map(
       "installationId" -> app.installationId,
       "apiBaseUrl" -> app.apiBaseUrl,
       "id" -> app.id,
@@ -73,14 +77,13 @@ trait ForgeInvocationTokenGen extends AtlassianConnectJwtGen {
             ).asJava
           )
           .asJava
-      ).asJava,
-      "license" -> (app.license match {
-        case Some(license) =>
-          Map(
-            "isActive" -> license.isActive
-          ).asJava
-        case None => null
-      })
-    ).asJava
+      ).asJava
+    )
+
+    (appFields ++ app.license.map { license =>
+      "license" -> licenseFieldsOverride
+        .getOrElse(Map("active" -> license.active))
+        .asJava
+    }).asJava
   }
 }

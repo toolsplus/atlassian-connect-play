@@ -1,10 +1,7 @@
 package io.toolsplus.atlassian.connect.play.auth.frc.jwt
 
 import io.toolsplus.atlassian.connect.play.TestSpec
-import io.toolsplus.atlassian.connect.play.auth.frc.{
-  ForgeRemoteContext,
-  ForgeRemoteCredentials
-}
+import io.toolsplus.atlassian.connect.play.auth.frc.{ForgeRemoteContext, ForgeRemoteCredentials}
 import io.toolsplus.atlassian.connect.play.auth.jwt.InvalidJwtError
 import io.toolsplus.atlassian.connect.play.models.AtlassianForgeProperties
 import io.toolsplus.atlassian.jwt.api.Predef.RawJwt
@@ -60,7 +57,7 @@ class ForgeRemoteJwtAuthenticationProviderSpec
             )
           )
         ),
-        Some(License(true))
+        Some(License(active = true))
       ),
       None,
       None
@@ -98,6 +95,93 @@ class ForgeRemoteJwtAuthenticationProviderSpec
             .authenticate(forgeRemoteCredentials(invocationToken))
 
           result.value mustBe a[ForgeRemoteContext]
+          result.value.invocationContext.app.license.value.active mustBe true
+        }
+      }
+
+      "authenticate an inactive canonical license" in {
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
+        val invocationContext = fakeForgeInvocationContext.copy(app =
+          fakeForgeInvocationContext.app.copy(license = Some(License(false)))
+        )
+
+        forAll(forgeInvocationTokenGen(invocationContext, keyId, privateKey)) {
+          invocationToken =>
+            (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
+              .expects(*, invocationContext)
+              .returning(java.util.List.of(publicKey))
+
+            val result = authenticationProvider
+              .authenticate(forgeRemoteCredentials(invocationToken))
+
+            result.value.invocationContext.app.license.value.active mustBe false
+        }
+      }
+
+      "authenticate a legacy isActive-only license" in {
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
+        forAll(
+          forgeInvocationTokenGen(
+            fakeForgeInvocationContext,
+            keyId,
+            privateKey,
+            licenseFieldsOverride = Some(Map("isActive" -> true))
+          )
+        ) { invocationToken =>
+          (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
+            .expects(*, fakeForgeInvocationContext)
+            .returning(java.util.List.of(publicKey))
+
+          val result = authenticationProvider
+            .authenticate(forgeRemoteCredentials(invocationToken))
+
+          result.value.invocationContext.app.license.value.active mustBe true
+        }
+      }
+
+      "prefer active when a transition license contains both fields" in {
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
+        val expectedContext = fakeForgeInvocationContext.copy(app =
+          fakeForgeInvocationContext.app.copy(license = Some(License(false)))
+        )
+
+        forAll(
+          forgeInvocationTokenGen(
+            fakeForgeInvocationContext,
+            keyId,
+            privateKey,
+            licenseFieldsOverride = Some(
+              Map("active" -> false, "isActive" -> true)
+            )
+          )
+        ) { invocationToken =>
+          (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
+            .expects(*, expectedContext)
+            .returning(java.util.List.of(publicKey))
+
+          val result = authenticationProvider
+            .authenticate(forgeRemoteCredentials(invocationToken))
+
+          result.value.invocationContext.app.license.value.active mustBe false
+        }
+      }
+
+      "authenticate when the license object is missing" in {
+        implicit val rawJwtNoShrink: Shrink[RawJwt] = Shrink.shrinkAny
+        val invocationContext = fakeForgeInvocationContext.copy(app =
+          fakeForgeInvocationContext.app.copy(license = None)
+        )
+
+        forAll(forgeInvocationTokenGen(invocationContext, keyId, privateKey)) {
+          invocationToken =>
+            (mockForgeJWSVerificationKeySelector.selectJWSKeys _)
+              .expects(*, invocationContext)
+              .returning(java.util.List.of(publicKey))
+
+            val result = authenticationProvider
+              .authenticate(forgeRemoteCredentials(invocationToken))
+
+            result.value.invocationContext.app.license mustBe None
         }
       }
 
