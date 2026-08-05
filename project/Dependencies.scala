@@ -19,16 +19,35 @@ object Dependencies {
     Library.atlassianJwtGenerators % "test",
     Library.pekkoTestKit % "test"
   )
+
+  // Play 3.0.11 still resolves vulnerable Jackson, LZ4, and Logback releases.
+  // Keep these explicit so the fixed versions are included in the published
+  // POM. Remove them once Play provides the fixed versions or newer.
+  val securityOverrides = Seq(
+    "at.yawk.lz4" % "lz4-java" % Version.lz4,
+    "ch.qos.logback" % "logback-classic" % Version.logback,
+    "com.fasterxml.jackson.core" % "jackson-annotations" % Version.jackson,
+    "com.fasterxml.jackson.core" % "jackson-core" % Version.jackson,
+    "com.fasterxml.jackson.core" % "jackson-databind" % Version.jackson,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % Version.jackson,
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % Version.jackson,
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % Version.jackson,
+    "com.fasterxml.jackson.module" % "jackson-module-parameter-names" % Version.jackson,
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % Version.jackson
+  )
 }
 
 object Version {
-  val atlassianJwt = "0.4.1"
+  val atlassianJwt = "0.4.2"
   val cats = "2.13.0"
   val circe = "0.14.15"
   val playCirce = "3014.1"
   val scalaUri = "4.2.0"
   val sttp = "3.11.0"
   val nimbusJoseJwt = "10.8"
+  val jackson = "2.18.9"
+  val logback = "1.5.34"
+  val lz4 = "1.11.1"
   val scalaTest = "3.2.19"
   val scalaTestPlusPlay = "7.0.2"
   val scalaTestPlusScalaCheck = "3.2.18.0"
